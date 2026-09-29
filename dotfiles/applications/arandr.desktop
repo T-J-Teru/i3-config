@@ -1,0 +1,17 @@
+[Desktop Entry]
+# User override of /usr/share/applications/arandr.desktop.
+# Files in ~/.local/share/applications take precedence over /usr/share and
+# survive package updates. The only addition over the packaged entry is the
+# Keywords= line, so ARandR is findable in rofi/GNOME by "Display" (10 years of
+# muscle memory) as well as Monitor/Screen/Layout. Requires rofi to search the
+# keywords field -- see the $mod+d binding's -drun-match-fields in the i3 config.
+Name=ARandR
+GenericName=Screen Settings
+GenericName[de]=Bildschirmeinstellungen
+Keywords=Display;Monitor;Screen;Layout;Resolution;Output;
+Icon=display
+Exec=arandr
+Terminal=false
+Type=Application
+Categories=Settings;HardwareSettings;X-XFCE-SettingsDialog;X-XFCE-HardwareSettings;
+StartupNotify=true

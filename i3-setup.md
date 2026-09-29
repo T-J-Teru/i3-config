@@ -369,6 +369,23 @@ so the matching layout is restored automatically when i3 comes up.
 the connected monitors' EDIDs, so they are machine-specific. On a new machine, recreate the
 layout with `arandr` and `autorandr --save`. The current profile here is named `home`.
 
+### Finding ARandR in the launcher by "Display"
+
+The packaged `arandr.desktop` has `Name=ARandR` and `GenericName=Screen Settings`, so rofi
+finds it under "arandr" or "screen" but not "Display". A **user desktop override** at
+`~/.local/share/applications/arandr.desktop` (version-controlled at
+`dotfiles/applications/arandr.desktop`, symlinked by `install.sh`) adds a `Keywords=` line:
+
+```ini
+Keywords=Display;Monitor;Screen;Layout;Resolution;Output;
+```
+
+Files in `~/.local/share/applications` override those in `/usr/share/applications` and
+survive package updates. For rofi to actually search that field, the `$mod+d` binding must
+include `keywords` in `-drun-match-fields`. The old value `"Name#Generic"` was not valid
+syntax (rofi fields are lowercase, comma-separated), so it was corrected to
+`name,generic,keywords`. Now typing "Display" (or Monitor/Layout/…) surfaces ARandR.
+
 ## Follow-ups / ideas
 
 - Version-control `~/.xscreensaver` once locking preferences are tuned.
@@ -460,3 +477,9 @@ layout with `arandr` and `autorandr --save`. The current profile here is named `
   install.sh and an `exec_always autorandr --change` line to the i3 config so the layout is
   reapplied on start/hotplug. Profiles are machine-specific (EDID-keyed) so left out of
   version control; documented in a new "Monitor layout" section.
+- **2026-09-29** — Made ARandR findable by "Display" in the rofi launcher. Added a
+  version-controlled user desktop override (`dotfiles/applications/arandr.desktop`, symlinked
+  into `~/.local/share/applications`) with `Keywords=Display;Monitor;Screen;Layout;…`, and
+  fixed the `$mod+d` `-drun-match-fields` value from the invalid `"Name#Generic"` to
+  `name,generic,keywords` so rofi searches the keyword field. install.sh now also symlinks
+  `dotfiles/applications/*.desktop`.

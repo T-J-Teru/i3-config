@@ -78,6 +78,12 @@ create_symlinks() {
   # rofi custom theme (arthur-entry; the plain 'arthur' theme is built into rofi)
   link "$REPO/dotfiles/rofi/arthur-entry.rasi" "$HOME/.config/rofi/arthur-entry.rasi"
 
+  # Desktop-entry overrides (add search keywords etc.). ~/.local/share/applications
+  # takes precedence over /usr/share/applications.
+  for f in "$REPO"/dotfiles/applications/*.desktop; do
+    link "$f" "$HOME/.local/share/applications/$(basename "$f")"
+  done
+
   # ~/bin helper scripts (link every file the repo tracks under bin/)
   for f in "$REPO"/bin/*; do
     link "$f" "$HOME/bin/$(basename "$f")"

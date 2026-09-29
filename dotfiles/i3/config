@@ -72,7 +72,7 @@ bindsym $mod+Return exec --no-startup-id $term
 bindsym $mod+Shift+q kill
 
 # Application launcher: rofi in drun mode (replaces the default dmenu). See i3-setup.md.
-bindsym $mod+d exec --no-startup-id rofi -modi drun -show drun -display-drun "Start: " -drun-match-fields "Name#Generic" -show-icons -theme arthur
+bindsym $mod+d exec --no-startup-id rofi -modi drun -show drun -display-drun "Start: " -drun-match-fields "name,generic,keywords" -show-icons -theme arthur
 
 # Switch between windows on the current workspace (rofi windowcd modi).
 bindsym $mod+Shift+Return exec --no-startup-id rofi -modi windowcd -show windowcd -show-icons -theme arthur
