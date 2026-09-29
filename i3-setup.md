@@ -342,6 +342,33 @@ Notes:
 - `i3-setup-keyboard` and its `~/bin` symlink were removed; no `inotify-tools` needed.
 - The `localectl` command uses layout `gb` (this machine). Change it for a different layout.
 
+## Monitor layout (arandr + autorandr)
+
+GNOME has its own Settings → Displays panel, but that only affects the Wayland session;
+i3 (X11) needs an xrandr-based tool. Two packages cover it:
+
+- **`arandr`** — a graphical, drag-and-drop front-end for `xrandr`. Launch it, arrange the
+  monitors, set primary/resolution/orientation, and click Apply. Changes are live but not
+  persistent. (arandr pulls in `xrandr`, which is otherwise not installed.)
+- **`autorandr`** — snapshots a layout and reapplies it automatically when the same set of
+  monitors is detected (via its udev hook on dock/undock, and via i3 on start).
+
+Workflow:
+
+```bash
+arandr                     # arrange graphically, Apply
+autorandr --save home      # save the current layout as a named profile
+autorandr --list           # list profiles
+autorandr --change         # reapply whichever profile matches connected outputs
+```
+
+The i3 config runs `exec_always --no-startup-id autorandr --change` on every start/restart,
+so the matching layout is restored automatically when i3 comes up.
+
+**Not version-controlled:** profiles live in `~/.config/autorandr/<name>/` and are keyed to
+the connected monitors' EDIDs, so they are machine-specific. On a new machine, recreate the
+layout with `arandr` and `autorandr --save`. The current profile here is named `home`.
+
 ## Follow-ups / ideas
 
 - Version-control `~/.xscreensaver` once locking preferences are tuned.
@@ -427,3 +454,9 @@ Notes:
   Applied to the live session with `setxkbmap`, added a `configure_keyboard` step to
   install.sh, and `git rm`'d the script + `~/bin` symlink. (`inotifywait` wasn't even
   installed, so the old loop was already non-functional here.)
+- **2026-09-29** — Monitor layout: installed `arandr` (graphical xrandr front-end; pulls in
+  `xrandr`) + `autorandr` for persistent, per-monitor-set layout profiles. Arranged the two
+  displays with arandr and saved profile `home` (`autorandr --save home`). Added both to
+  install.sh and an `exec_always autorandr --change` line to the i3 config so the layout is
+  reapplied on start/hotplug. Profiles are machine-specific (EDID-keyed) so left out of
+  version control; documented in a new "Monitor layout" section.

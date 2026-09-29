@@ -30,6 +30,10 @@ PACKAGES=(
   # Launcher / window & workspace switcher.
   rofi
 
+  # Graphical monitor-layout tool (arandr) + automatic layout profiles (autorandr).
+  # arandr pulls in xrandr as a dependency. See "Monitor layout" in i3-setup.md.
+  arandr autorandr
+
   # PDF viewer opened by i3-pdf-select (Fedora's evince successor).
   papers
 

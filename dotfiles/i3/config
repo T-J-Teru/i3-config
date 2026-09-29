@@ -23,6 +23,14 @@ font pango:monospace 8
 # https://wiki.archlinux.org/index.php/XDG_Autostart
 exec --no-startup-id dex-autostart --autostart --environment i3
 
+# Reapply the saved monitor layout for the currently-connected outputs (autorandr).
+# Profiles are created graphically with arandr, then `autorandr --save <name>`.
+# exec_always runs this on every i3 start/restart; autorandr also has its own udev
+# hook for dock/undock. Profiles live in ~/.config/autorandr/ and are machine-
+# specific (keyed to monitor EDIDs), so they are NOT version-controlled -- recreate
+# them per machine. See "Monitor layout" in i3-setup.md.
+exec_always --no-startup-id autorandr --change
+
 # nm-applet and pactl (below) are a popular choice. Modify as you see fit.
 
 # Screen saver + locking via xscreensaver (chosen over i3lock; see i3-setup.md).
