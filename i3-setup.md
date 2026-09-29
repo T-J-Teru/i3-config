@@ -386,6 +386,17 @@ include `keywords` in `-drun-match-fields`. The old value `"Name#Generic"` was n
 syntax (rofi fields are lowercase, comma-separated), so it was corrected to
 `name,generic,keywords`. Now typing "Display" (or Monitor/Layout/…) surfaces ARandR.
 
+**i3 quoting gotcha:** i3 treats a comma as a *command separator* (e.g. `move left, resize …`),
+so an unquoted `-drun-match-fields name,generic,keywords` makes i3 try to run `generic` /
+`keywords` as commands and the binding fails at press time (it still passes `i3 -C`, which
+does not fully parse bound commands). The fix is to wrap the **entire** command in one i3
+double-quoted string — i3 treats commas inside double quotes as literal — and use inner
+single quotes for the `'Start: '` prompt so `sh` keeps its trailing space:
+
+```
+bindsym $mod+d exec --no-startup-id "rofi -modi drun -show drun -display-drun 'Start: ' -drun-match-fields name,generic,keywords -show-icons -theme arthur"
+```
+
 ## Follow-ups / ideas
 
 - Version-control `~/.xscreensaver` once locking preferences are tuned.
@@ -483,3 +494,9 @@ syntax (rofi fields are lowercase, comma-separated), so it was corrected to
   fixed the `$mod+d` `-drun-match-fields` value from the invalid `"Name#Generic"` to
   `name,generic,keywords` so rofi searches the keyword field. install.sh now also symlinks
   `dotfiles/applications/*.desktop`.
+- **2026-09-29** — Fixed `$mod+d` failing at press time (`Expected one of these tokens…`).
+  Cause: the commas in `-drun-match-fields name,generic,keywords` — i3 treats `,` as a
+  command separator, so it tried to parse `generic`/`keywords` as commands. (`i3 -C` passed
+  because it doesn't fully parse bound commands.) Fix: wrapped the whole rofi command in one
+  i3 double-quoted string (commas inside double quotes are literal) with inner single quotes
+  around `'Start: '` for sh. Verified the parse via `i3-msg` before applying; reloaded OK.
