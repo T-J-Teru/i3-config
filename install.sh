@@ -31,6 +31,10 @@ PACKAGES=(
   # Status bar (replaces i3bar/i3status). See "Status bar (polybar)" in i3-setup.md.
   polybar
 
+  # Glyph icon font for the polybar status modules (backlight, volume, battery, etc.).
+  # Font Awesome 6 Free (Solid). Nerd Fonts aren't packaged in Fedora repos.
+  fontawesome-6-free-fonts
+
   # Launcher / window & workspace switcher.
   rofi
 

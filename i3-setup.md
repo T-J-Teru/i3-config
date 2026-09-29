@@ -221,8 +221,11 @@ old `bar {}` block is preserved commented-out in the i3 config.)
 **Install:**
 
 ```bash
-sudo dnf install -y polybar
+sudo dnf install -y polybar fontawesome-6-free-fonts
 ```
+
+`fontawesome-6-free-fonts` supplies the glyph icons used by the status modules. Nerd Fonts
+aren't packaged in Fedora's repos, so Font Awesome 6 Free (Solid) is the reliable choice.
 
 **Files** (version-controlled under `dotfiles/polybar/`, symlinked by `install.sh`):
 
@@ -232,10 +235,18 @@ sudo dnf install -y polybar
   `exec_always --no-startup-id $HOME/.config/polybar/launch.sh`, so it re-runs on i3 restart and
   can be re-run any time to respawn the bars.
 
-**Modules configured:** i3 workspaces (left), focused window title (center), and on the right:
-backlight, volume (pulseaudio), memory, cpu, wifi, battery, clock, plus the tray. Labels are
-plain text on a `monospace` font (no icon-font dependency) — swap in a Nerd Font later for
-glyphs.
+**Modules configured:** i3 workspaces (left) and, on the right: backlight, volume (pulseaudio),
+disk usage, memory, cpu, wifi, battery, clock, plus the tray. (No window-title module.)
+
+**Fonts / glyph icons:** two fonts are declared in `[bar/main]` — `font-0 = monospace` for text
+and `font-1 = Font Awesome 6 Free:style=Solid` for icons. Modules select the icon font with the
+`%{T2}` token (`%{T1}` = font-0, `%{T2}` = font-1, `%{T-}` reverts). Icons in use: sun
+(backlight), speaker that ramps with the volume level / crossed-out when muted, hard-drive
+(disk), memory chip (RAM), microchip (CPU), wifi, a battery that fills with charge (plus a bolt
+while charging), and a calendar (clock). If any icon shows as an empty box (tofu), the font is
+missing — install `fontawesome-6-free-fonts`. The glyph codepoints are stored as literal UTF-8
+in `config.ini`; they were injected from ASCII placeholders via a `perl -CSD` pass to guarantee
+the exact Font Awesome codepoints.
 
 **Machine-specific values** baked into `config.ini` (change per machine; commands to find them
 are noted inline in the file): battery `BAT0` / adapter `AC` (`/sys/class/power_supply`), wifi
@@ -693,3 +704,9 @@ emit with `xev` (they may produce different keysyms) and adjust the bindings.
 - **2026-09-29** — Fixed the clock: machine shipped on `US/Eastern` (EDT) so `date`/i3bar
   showed the wrong local time (UTC/NTP were correct). `sudo timedatectl set-timezone
   Europe/London`. Added a `configure_timezone` step to install.sh and a "Timezone" doc section.
+- **2026-09-29** — Polybar: replaced the plain-text status labels with **glyph icons** from
+  Font Awesome 6 Free (Solid). Added `font-1 = Font Awesome 6 Free:style=Solid` and switched
+  backlight (sun), volume (level-ramping speaker / crossed-out muted), disk (hard-drive), memory,
+  cpu (microchip), wifi, and clock (calendar) to icons; battery now uses a capacity ramp with a
+  charging bolt. Added `fontawesome-6-free-fonts` to install.sh. Glyphs stored as literal UTF-8,
+  injected from ASCII placeholders via `perl -CSD` to guarantee exact codepoints.
