@@ -34,6 +34,9 @@ PACKAGES=(
   # arandr pulls in xrandr as a dependency. See "Monitor layout" in i3-setup.md.
   arandr autorandr
 
+  # Display backlight control, bound to the brightness keys in the i3 config.
+  brightnessctl
+
   # PDF viewer opened by i3-pdf-select (Fedora's evince successor).
   papers
 

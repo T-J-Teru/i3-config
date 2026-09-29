@@ -475,6 +475,27 @@ single quotes for the `'Start: '` prompt so `sh` keeps its trailing space:
 bindsym $mod+d exec --no-startup-id "rofi -modi drun -show drun -display-drun 'Start: ' -drun-match-fields name,generic,keywords -show-icons -theme arthur"
 ```
 
+## Display brightness
+
+The old XFCE-panel brightness widget is replaced by **`brightnessctl`** bound to the laptop's
+brightness keys. brightnessctl talks to systemd-logind (and ships a udev fallback), so it needs
+**no root** to change the backlight in the active session. It drives the one backlight device
+here, `intel_backlight` (`/sys/class/backlight/`).
+
+i3 bindings (see the config):
+
+```
+bindsym XF86MonBrightnessUp   exec --no-startup-id brightnessctl set 5%+
+bindsym XF86MonBrightnessDown exec --no-startup-id brightnessctl set 5%-
+```
+
+Handy CLI: `brightnessctl` (show current), `brightnessctl set 50%`, `set 5%+`, `set 5%-`.
+
+Note: `xbacklight` was **not** chosen — it relies on a RandR backlight property that the Intel
+driver typically does not expose, so it tends to fail on this hardware; brightnessctl uses the
+sysfs/logind path instead. If the `XF86MonBrightness*` keys don't trigger, check what your keys
+emit with `xev` (they may produce different keysyms) and adjust the bindings.
+
 ## Follow-ups / ideas
 
 - Version-control `~/.xscreensaver` once locking preferences are tuned.
@@ -608,3 +629,8 @@ bindsym $mod+d exec --no-startup-id "rofi -modi drun -show drun -display-drun 'S
   off→on modeset does (the automatic path gets this because `mobile` disables `DP-2-3` before
   `home` re-enables it). Updated the recovery docs accordingly and removed the temporary
   `~/bin/i3-monitor-hotplug-test` watcher.
+- **2026-09-29** — Added display brightness control: `brightnessctl` (chosen over `xbacklight`,
+  which relies on a RandR backlight prop Intel doesn't expose, and over `light`). No root needed
+  (logind + udev). Bound `XF86MonBrightnessUp/Down` to `brightnessctl set 5%+/-`; added the
+  package to install.sh and a "Display brightness" doc section. Backlight device:
+  `intel_backlight`.
