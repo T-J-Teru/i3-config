@@ -298,7 +298,6 @@ Additional bindings from the old setup, backed by scripts in `bin/`:
 | -------------- | ------------------------------- | ------------------------------------ | ------ |
 | `$mod+Tab`     | `i3-toggle-selected-output.py`  | Cycle focus through active outputs    | ✅ working (`python3-i3ipc`) |
 | `$mod+Shift+p` | `i3-pdf-select`                 | Fuzzy-find a PDF under `~/Documents` and open it | ✅ working (rofi + `papers`) |
-| `` $mod+grave `` | `i3-toggl-select`             | Toggl time-tracker project switcher   | ❌ disabled — needs `toggl` CLI |
 
 Notes / fixes applied:
 
@@ -308,11 +307,9 @@ Notes / fixes applied:
   rofi `arthur` theme in dmenu mode.
 - **`i3-toggle-selected-output.py`**: uses `python3-i3ipc` (already installed); shebang
   `#! /bin/env python3` works. No changes needed.
-- **`i3-toggl-select`** (DISABLED): a personal Toggl time-tracking integration. It shells
-  out to a `toggl` CLI that is **not packaged in dnf** and requires a configured Toggl
-  account/API token. It also pokes `py3status`/`i3status` with `killall -USR1` to refresh
-  the bar (harmless if `py3status` is absent). Binding is staged (commented) in the config
-  pending a decision on whether to keep using Toggl.
+- **`i3-toggl-select`** (Toggl time-tracker switcher): **dropped.** It depended on a
+  `toggl` CLI not packaged in dnf plus a configured Toggl account, and is no longer used.
+  Binding, script (`bin/i3-toggl-select`), and its `~/bin` symlink were removed.
 
 ## Follow-ups / ideas
 
@@ -390,3 +387,6 @@ Notes / fixes applied:
   fixed i3-pdf-select's hardcoded path (`/home/andrew`→`$HOME`) and swapped `evince`→
   `papers` (added `papers` to install.sh). `$mod+grave` (i3-toggl-select) left disabled —
   needs the un-packaged `toggl` CLI + a Toggl account; binding staged commented.
+- **2026-09-29** — Dropped the Toggl integration entirely (no longer used): removed the
+  `$mod+grave` binding, `git rm bin/i3-toggl-select`, removed its `~/bin` symlink, and
+  cleaned up the docs.

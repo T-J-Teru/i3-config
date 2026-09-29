@@ -93,10 +93,6 @@ bindsym $mod+Tab exec --no-startup-id i3-toggle-selected-output.py
 
 # Fuzzy-find a PDF under ~/Documents and open it (i3-pdf-select: rofi + papers).
 bindsym $mod+Shift+p exec --no-startup-id i3-pdf-select
-
-# Toggl time-tracker project switcher (i3-toggl-select) -- DISABLED: needs the `toggl`
-# CLI (not packaged in dnf) plus a configured Toggl account. See i3-setup.md.
-# bindsym $mod+grave exec --no-startup-id i3-toggl-select
 # -------------------------------------------------------------------------------------
 
 # change focus
