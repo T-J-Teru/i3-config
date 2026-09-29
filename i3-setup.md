@@ -397,13 +397,25 @@ DisplayPort-MST (name `DP-2-3` = branch `DP-2`, downstream port `3`) via the doc
 connected↔disconnected on hotplug), so automatic switching works. The earlier "unplug did
 nothing" symptom was purely the missing `mobile` profile, not a detection failure.
 
-Each hotplug transition runs a real `xrandr` modeset (off on unplug, fresh mode on replug),
-which also cures the **stale-link blank screen** that occurred previously: when no profile
-switch happened, the DP link was never re-driven and the panel stayed black after replug.
+Each hotplug transition now runs a real off→on `xrandr` modeset: on unplug `mobile` turns
+`DP-2-3` **off**, and on replug `home` turns it back **on** with a fresh mode. That off→on
+sequence is what cures the **stale-link blank screen** seen previously — when no profile switch
+happened the DP/MST link was never disabled and re-enabled, so the panel stayed black after
+replug even though everything *looked* configured. End-to-end unplug/replug was tested and
+works in both directions, including the 20-29 workspace re-homing.
 
-Manual recovery, if a display is ever stuck black: `autorandr --change --force` (re-applies
-and re-runs hooks even if autorandr thinks nothing changed). A full off/on cycle also works:
-`xrandr --output DP-2-3 --off && autorandr --load home --force`.
+> **Two hard-won gotchas:**
+> 1. **`xrandr` connection/mode state is not ground truth for "is there a picture."** X can
+>    report `DP-2-3 connected 1920x1200+0+0` while the physical panel is black (dead link).
+>    Only your eyes confirm recovery.
+> 2. **Recovery requires turning the output OFF then ON — not just re-applying the mode.**
+>    `autorandr --change --force` (which re-asserts the *same* mode on a stale link) did **not**
+>    recover a stuck panel in testing. What works is an explicit off/on cycle:
+>    ```bash
+>    xrandr --output DP-2-3 --off && sleep 1 && autorandr --load home --force
+>    ```
+>    (The automatic path gets this for free because `mobile` disables the output before `home`
+>    re-enables it.)
 
 Note: plain `autorandr --load <profile>` skips a profile that doesn't match the currently
 connected outputs; add `--force` to apply it anyway (used for testing `mobile` while docked).
@@ -587,3 +599,12 @@ bindsym $mod+d exec --no-startup-id "rofi -modi drun -show drun -display-drun 'S
   placement hook. Recovered the live blank screen with an off/on modeset. Documented recovery
   commands and the two-profile requirement. Physical unplug/replug end-to-end test still to be
   run by the user.
+- **2026-09-29** — Physical unplug/replug tested end-to-end: **works in both directions**.
+  Unplug → both screens blink, laptop returns, i3 moves all workspaces to `eDP-1`. Replug →
+  blink, both return, workspaces 20-29 auto-move back to the external. Corrected two mistaken
+  claims from earlier debugging: (1) `xrandr` reporting a connector as connected+moded does
+  NOT mean the link is live — the panel can be black while xrandr looks healthy; (2)
+  `autorandr --change --force` did **not** recover a stuck panel — only an explicit output
+  off→on modeset does (the automatic path gets this because `mobile` disables `DP-2-3` before
+  `home` re-enables it). Updated the recovery docs accordingly and removed the temporary
+  `~/bin/i3-monitor-hotplug-test` watcher.
