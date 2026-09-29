@@ -1,0 +1,199 @@
+#!/usr/bin/perl
+
+use warnings;
+use strict;
+no indirect;
+no autovivification;
+
+#========================================================================#
+
+=pod
+
+=head1 NAME
+
+i3-rename-workspace - a quick summary of what i3-rename-workspace does.
+
+=head1 OPTIONS
+
+B<i3-rename-workspace> [-h|--help]
+
+=head1 SYNOPSIS
+
+A full description for i3-rename-workspace has not yet been written.
+
+=cut
+
+#========================================================================#
+
+use Getopt::Long;
+use Pod::Usage;
+use JSON::Parse qw/:all/;
+use Carp::Assert;
+
+#========================================================================#
+
+# Support -h / --help by printing this script's POD.  Replaces the old custom
+# GiveHelp module; uses only core Getopt::Long + Pod::Usage.
+my $help;
+GetOptions ('help|h' => \$help) or pod2usage (2);
+pod2usage (-verbose => 1) if ($help);
+
+#========================================================================#
+
+# Get the name and number for the currently focused workspace.
+my $details = get_current_workspace_details ();
+
+# Ask the user what they'd like to now call the workspace.
+my $new_name = get_new_name_for_workspace ($details->{name});
+
+# If there's no new name then the user doesn't want to rename.
+exit 0 if (not (defined ($new_name)));
+
+# New name should never be empty.
+assert ($new_name ne "");
+
+# If the new name begins with a number then keep this.  Otherwise add the
+# number of the current workspace as a prefix.
+if (not ($new_name =~ m/^\d+:/))
+{
+  if ($new_name =~ m/(\d+)(.*)/)
+  {
+    if ($2 eq "")
+    {
+      $new_name = $1;
+    }
+    else
+    {
+      $new_name = $1.":".$2;
+    }
+  }
+  else
+  {
+    # Figure out the current workspace number.
+    assert (defined ($details->{number}));
+    my $current_workspace_number = $details->{number};
+
+    $new_name = $current_workspace_number.":".$new_name;
+  }
+}
+
+# Now actually rename the workspace.
+rename_current_workspace ($new_name);
+
+exit 0;
+
+#========================================================================#
+
+=pod
+
+=head1 METHODS
+
+The following methods are defined in this script.
+
+=over 4
+
+=cut
+
+#========================================================================#
+
+=pod
+
+=item B<get_new_name_for_workspace>
+
+Use rofi to prompt the user for the name of a new workspace.  If the user
+doesn't provide a new name then this function returns undef, otherwise it
+returns a string that is the new name entered by the user.
+
+Takes the current workspace name as a string and uses this in the prompt to
+the user.
+
+=cut
+
+sub get_new_name_for_workspace {
+  my $name = shift;
+
+  my $prompt = "New workspace name:";
+  if (defined ($name) and ($name =~ m/^\d+:(.*)/))
+  {
+    $prompt = "Rename workspace '$1' to:";
+  }
+
+  my $new_name = `echo "" | rofi -theme arthur-entry -dmenu -p "$prompt"`;
+  chomp $new_name;
+  return (undef) if ($new_name eq "");
+  return $new_name;
+}
+
+#========================================================================#
+
+=pod
+
+=item B<rename_current_workspace>
+
+Take a string that is the new name for the currently focused workspace and
+apply that name.  The name change is done by running the command:
+
+  i3-msg 'rename workspace to "NAME"'
+
+TODO: This doesn't detect errors in renaming.  It should, and display the
+error to the user.
+
+=cut
+
+sub rename_current_workspace {
+  my $name = shift;
+
+  my $output = `i3-msg 'rename workspace to "$name"'`;
+}
+
+#========================================================================#
+
+=pod
+
+=item B<get_current_workspace_details>
+
+Calls 'i3-msg -t get_workspaces' and extracts the name and number for the
+currently focused workspace.  If anything goes wrong then this function
+dies.
+
+=cut
+
+sub get_current_workspace_details {
+  my $str = `i3-msg -t get_workspaces`;
+  my $obj = parse_json ($str);
+
+  (ref ($obj) eq 'ARRAY') or
+    die "unable to figure out current workspace number\n";
+
+  my $details = { number => undef, name => undef };
+  foreach my $ws (@{$obj})
+  {
+    (exists ($ws->{focused}) and (exists ($ws->{num}))) or
+      die "unable to figure out current workspace number\n";
+    if ($ws->{focused})
+    {
+      $details->{number} = $ws->{num};
+      if (exists ($ws->{name}))
+      {
+        $details->{name} = $ws->{name};
+      }
+      else
+      {
+        $details->{name} = "".$ws->{num};
+      }
+    }
+  }
+
+  (defined ($details->{number}) and defined ($details->{name})) or
+    die "unable to figure out current workspace name and number\n";
+
+  return $details;
+}
+
+#========================================================================#
+
+=pod
+
+=back
+
+=cut

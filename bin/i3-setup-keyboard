@@ -1,0 +1,23 @@
+#! /usr/bin/env bash
+
+# The goal of this script is to spot when a new USB keyboard is
+# plugged in and modify the keyboard configuration.
+
+SETXKBMAP_OPTIONS="-option ctrl:nocaps"
+SETXKBMAP_CMD=$(which setxkbmap)
+
+# Function that actually adjusts the keyboard settings.
+function fixup_keyboard () {
+    ${SETXKBMAP_CMD} ${SETXKBMAP_OPTIONS}
+}
+
+# Run this as soon as the script starts.
+fixup_keyboard
+
+# Wait for changes in the input configuration, and rerun the setup
+# script.
+while true ; do
+    EVENT=$(inotifywait -q -e create -e delete --exclude '.*tmp.*' /dev/input/)
+    sleep 1
+    fixup_keyboard
+done

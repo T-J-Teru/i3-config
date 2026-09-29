@@ -1,0 +1,15 @@
+#! /bin/bash
+
+docroot=/home/andrew/Documents/
+rofibin=rofi
+
+pdfname=`find ${docroot} -name "*.pdf" \
+     | sed -e "s,${docroot},," \
+     | ${rofibin} -p "filename: " --only-match -dmenu -i -theme arthur`
+
+fullname="${docroot}${pdfname}"
+
+if [ -n "${pdfname}" -a -e "${fullname}" ]
+then
+        exec evince "${fullname}"
+fi

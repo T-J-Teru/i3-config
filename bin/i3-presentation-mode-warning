@@ -1,0 +1,29 @@
+#! /bin/bash
+
+# This script should be run during the session, probably as a startup
+# script from within i3.  It will monitor xscreensaver for unlock
+# events, and when the screen unlocks, if xfce4 presentation mode is
+# active (the mode that prevents the screensaver from activating) then
+# it sends a notification.
+#
+# This means I'm not caught out, thinking the screensaver will kick in
+# when I've accidentally left it disabled.
+
+XSCREENSAVER_COMMAND=xscreensaver-command
+XFCONF_QUERY=xfconf-query
+
+MSG_TITLE="Presentation Mode"
+MSG_BODY="Presentation mode is active, screensaver\nwill not activate automatically."
+MSG_DELAY=1
+
+while read -r line
+do
+    if echo "$line" | grep -q UNBLANK; then
+        state=$(${XFCONF_QUERY} -c xfce4-power-manager \
+                                -p /xfce4-power-manager/presentation-mode)
+        if [ "x$state" = xtrue ]; then
+            sleep "${MSG_DELAY}"
+            notify-send "${MSG_TITLE}" "${MSG_BODY}"
+        fi
+    fi
+done < <(${XSCREENSAVER_COMMAND} -watch)

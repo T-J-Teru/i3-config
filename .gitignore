@@ -1,0 +1,7 @@
+# Backups created by install.sh when replacing pre-existing real files
+*.bak
+
+# Editor / OS cruft
+*~
+.*.swp
+.DS_Store
