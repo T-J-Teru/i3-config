@@ -342,6 +342,20 @@ Notes:
 - `i3-setup-keyboard` and its `~/bin` symlink were removed; no `inotify-tools` needed.
 - The `localectl` command uses layout `gb` (this machine). Change it for a different layout.
 
+## Timezone
+
+The machine shipped set to a US timezone (`US/Eastern`/EDT), so `date` and the i3bar clock
+showed the wrong local time even though UTC/NTP were correct. Fix (system-wide, needs sudo):
+
+```bash
+sudo timedatectl set-timezone Europe/London
+```
+
+`install.sh` applies this (`configure_timezone`). The i3bar clock updates on its next i3status
+tick — no restart needed. Location-specific, not i3-specific: change the zone for a machine
+used elsewhere (`timedatectl list-timezones` lists the options; `timedatectl status` shows the
+current one).
+
 ## Monitor layout (arandr + autorandr)
 
 GNOME has its own Settings → Displays panel, but that only affects the Wayland session;
@@ -634,3 +648,6 @@ emit with `xev` (they may produce different keysyms) and adjust the bindings.
   (logind + udev). Bound `XF86MonBrightnessUp/Down` to `brightnessctl set 5%+/-`; added the
   package to install.sh and a "Display brightness" doc section. Backlight device:
   `intel_backlight`.
+- **2026-09-29** — Fixed the clock: machine shipped on `US/Eastern` (EDT) so `date`/i3bar
+  showed the wrong local time (UTC/NTP were correct). `sudo timedatectl set-timezone
+  Europe/London`. Added a `configure_timezone` step to install.sh and a "Timezone" doc section.

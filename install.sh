@@ -115,6 +115,18 @@ configure_keyboard() {
 }
 
 #-----------------------------------------------------------------------------#
+# 4. System timezone
+#-----------------------------------------------------------------------------#
+
+# Set the system timezone. Machines have shipped set to a US zone; correct it to
+# the UK. Location-specific rather than i3-specific -- change the zone for a
+# machine used elsewhere (list options with `timedatectl list-timezones`).
+configure_timezone() {
+  echo ">> Setting timezone to Europe/London (sudo)..."
+  sudo timedatectl set-timezone Europe/London
+}
+
+#-----------------------------------------------------------------------------#
 # main
 #-----------------------------------------------------------------------------#
 
@@ -122,6 +134,7 @@ main() {
   if [[ "${1:-}" != "--links" ]]; then
     install_packages
     configure_keyboard
+    configure_timezone
   fi
   create_symlinks
   echo
