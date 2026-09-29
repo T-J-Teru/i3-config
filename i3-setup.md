@@ -369,6 +369,44 @@ so the matching layout is restored automatically when i3 comes up.
 the connected monitors' EDIDs, so they are machine-specific. On a new machine, recreate the
 layout with `arandr` and `autorandr --save`. The current profile here is named `home`.
 
+### Automatic hotplug switching
+
+The `autorandr` package ships a udev rule (`/usr/lib/udev/rules.d/40-monitor-hotplug.rules`)
+that, on any monitor plug/unplug, runs `systemctl start autorandr.service` → `autorandr
+--batch --change`. This auto-selects the matching profile when you dock/undock. The udev rule
+is active out of the box; the `autorandr.service` being `disabled` only affects its separate
+resume-from-sleep trigger, not hotplug. `--batch` sets `DISPLAY`/`XAUTHORITY` per user session
+so the switch (and its hooks) run inside the graphical session.
+
+Note: `autorandr --change` only switches — and only fires hooks — when the profile actually
+changes. If it prints `Config already loaded`, use `autorandr --change --force` to re-apply
+and re-run hooks (handy for testing).
+
+### Re-homing workspaces on the "home" profile (postswitch hook)
+
+Preference: workspaces numbered 20-29 should live on the external monitor. `autorandr` runs a
+global `postswitch` hook after every switch and exposes the activated profile in
+`$AUTORANDR_CURRENT_PROFILE`. The hook (version-controlled at `dotfiles/autorandr/postswitch`,
+symlinked to `~/.config/autorandr/postswitch`) runs `i3-fix-workspace-placement.py` only for
+the `home` profile:
+
+```sh
+case "$AUTORANDR_CURRENT_PROFILE" in
+    home) i3-fix-workspace-placement.py ;;
+esac
+```
+
+`i3-fix-workspace-placement.py` (uses `python3-i3ipc`) moves every existing workspace numbered
+20-29 to the external output, then restores focus. It is a no-op unless **both** expected
+outputs are active, so it is safe to run any time.
+
+- The hook is kept as a **global** hook, not inside `~/.config/autorandr/home/`, because the
+  per-profile directory is EDID-keyed and not version-controlled.
+- **Output names are machine-specific.** On this laptop: laptop = `eDP-1`, external = `DP-2-3`
+  (the old machine used `DP-3`). Both are set near the top of the script; check names with
+  `i3-msg -t get_outputs` and update them on a new machine.
+- You can still run `i3-fix-workspace-placement.py` by hand at any time.
+
 ### Finding ARandR in the launcher by "Display"
 
 The packaged `arandr.desktop` has `Name=ARandR` and `GenericName=Screen Settings`, so rofi
@@ -500,3 +538,12 @@ bindsym $mod+d exec --no-startup-id "rofi -modi drun -show drun -display-drun 'S
   because it doesn't fully parse bound commands.) Fix: wrapped the whole rofi command in one
   i3 double-quoted string (commas inside double quotes are literal) with inner single quotes
   around `'Start: '` for sh. Verified the parse via `i3-msg` before applying; reloaded OK.
+- **2026-09-29** — Automated `i3-fix-workspace-placement.py` (re-home workspaces 20-29 onto
+  the external monitor) via an autorandr global `postswitch` hook scoped to the `home` profile
+  (`dotfiles/autorandr/postswitch`, symlinked; install.sh updated). **Fixed the script for
+  this machine:** the external output is `DP-2-3` here, not the old machine's `DP-3` — the
+  hardcoded name meant the script silently no-op'd. Hoisted both output names to variables at
+  the top and corrected the shebang to `/usr/bin/env python3`. Confirmed the hotplug chain
+  (udev → `autorandr.service` → `autorandr --batch --change` → postswitch) and that the hook
+  fires on a real switch (`autorandr --change --force`). Left to verify by a physical replug:
+  that the `--batch` (system-service) environment lets the script reach i3.

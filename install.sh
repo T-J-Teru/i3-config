@@ -84,6 +84,11 @@ create_symlinks() {
     link "$f" "$HOME/.local/share/applications/$(basename "$f")"
   done
 
+  # autorandr global hooks (e.g. postswitch: re-home workspaces for the 'home'
+  # profile). The per-profile dirs under ~/.config/autorandr/<name> are EDID-keyed
+  # and machine-specific, so we keep hooks at the top level instead.
+  link "$REPO/dotfiles/autorandr/postswitch" "$HOME/.config/autorandr/postswitch"
+
   # ~/bin helper scripts (link every file the repo tracks under bin/)
   for f in "$REPO"/bin/*; do
     link "$f" "$HOME/bin/$(basename "$f")"

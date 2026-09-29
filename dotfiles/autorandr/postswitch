@@ -1,0 +1,21 @@
+#!/bin/sh
+#
+# autorandr global postswitch hook.
+#
+# Runs after autorandr applies any profile. autorandr exposes the activated
+# profile name in $AUTORANDR_CURRENT_PROFILE, so we scope actions to a profile.
+#
+# For the "home" profile (laptop + external monitor), re-home the 20-29
+# workspaces onto the external monitor via i3-fix-workspace-placement.py.
+# That script is itself a no-op unless both expected outputs are active, so
+# this is safe even if it runs in an unexpected state.
+#
+# This lives as a *global* hook (version-controlled, symlinked to
+# ~/.config/autorandr/postswitch) rather than inside ~/.config/autorandr/home/,
+# because the per-profile directory is EDID-keyed and machine-specific.
+
+case "$AUTORANDR_CURRENT_PROFILE" in
+    home)
+        i3-fix-workspace-placement.py
+        ;;
+esac

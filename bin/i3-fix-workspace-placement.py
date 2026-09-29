@@ -1,17 +1,19 @@
-#! /bin/env python3
+#! /usr/bin/env python3
 
 from i3ipc import Connection, Event
 
-# Look for two outputs, 'eDP-1' (laptop display), and 'DP-3' (external
-# monitor at home).
+# Look for two outputs, the laptop display and the external monitor at home.
+# Move every workspace numbered 20-29 to the external monitor.
 #
-# Move every display with a number between 20 and 30 to the external
-# monitor.
+# NOTE: output names are hardware/machine-specific. On this laptop the external
+# monitor enumerates as "DP-2-3" (check with `i3-msg -t get_outputs`). Update
+# these two names when setting up a different machine.
+
+# The laptop's built-in panel and the external monitor to move workspaces to.
+laptop_display = "eDP-1"
+target_display = "DP-2-3"
 
 i3 = Connection()
-
-# The display to move the workspaces to.
-target_display = "DP-3"
 
 # Return true if W is a workspace that should be moved to the external
 # output.  This will be true even if W is even on the correct output.
@@ -34,7 +36,7 @@ def get_current_state(i3):
             current_workspaces[o.current_workspace] = o.name
 
     # We don't have all the displays we need, so exit.
-    if not ("DP-3" in current_outputs and "eDP-1" in current_outputs):
+    if not (target_display in current_outputs and laptop_display in current_outputs):
         return None
 
     # Remember the currently focused workspace.
