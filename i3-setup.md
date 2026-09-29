@@ -366,8 +366,20 @@ The i3 config runs `exec_always --no-startup-id autorandr --change` on every sta
 so the matching layout is restored automatically when i3 comes up.
 
 **Not version-controlled:** profiles live in `~/.config/autorandr/<name>/` and are keyed to
-the connected monitors' EDIDs, so they are machine-specific. On a new machine, recreate the
-layout with `arandr` and `autorandr --save`. The current profile here is named `home`.
+the connected monitors' EDIDs, so they are machine-specific. On a new machine, recreate them:
+
+```bash
+# Docked (laptop + external), arranged with arandr:
+autorandr --save home
+# Undocked (laptop only):
+autorandr --save mobile
+```
+
+**Two profiles are needed for hotplug to work in both directions** (see below): `home`
+(laptop + external monitor) and `mobile` (laptop only). autorandr only ever switches *to a
+saved profile whose fingerprint matches the connected outputs* — with only `home` saved,
+unplugging matches nothing and i3 is left in the two-monitor layout. `mobile` gives it a
+laptop-only target to switch to. On this machine: external = `DP-2-3`, laptop = `eDP-1`.
 
 ### Automatic hotplug switching
 
@@ -376,11 +388,27 @@ that, on any monitor plug/unplug, runs `systemctl start autorandr.service` → `
 --batch --change`. This auto-selects the matching profile when you dock/undock. The udev rule
 is active out of the box; the `autorandr.service` being `disabled` only affects its separate
 resume-from-sleep trigger, not hotplug. `--batch` sets `DISPLAY`/`XAUTHORITY` per user session
-so the switch (and its hooks) run inside the graphical session.
+so the switch (and its hooks) run inside the graphical session (verified in the journal:
+`Running autorandr as aburgess for display :0`).
 
-Note: `autorandr --change` only switches — and only fires hooks — when the profile actually
-changes. If it prints `Config already loaded`, use `autorandr --change --force` to re-apply
-and re-run hooks (handy for testing).
+This machine uses an Intel iGPU (i915) + Xorg modesetting driver, and the external monitor is
+DisplayPort-MST (name `DP-2-3` = branch `DP-2`, downstream port `3`) via the dock/USB-C. X
+*does* detect MST plug/unplug here (confirmed: `xrandr` flips the connector
+connected↔disconnected on hotplug), so automatic switching works. The earlier "unplug did
+nothing" symptom was purely the missing `mobile` profile, not a detection failure.
+
+Each hotplug transition runs a real `xrandr` modeset (off on unplug, fresh mode on replug),
+which also cures the **stale-link blank screen** that occurred previously: when no profile
+switch happened, the DP link was never re-driven and the panel stayed black after replug.
+
+Manual recovery, if a display is ever stuck black: `autorandr --change --force` (re-applies
+and re-runs hooks even if autorandr thinks nothing changed). A full off/on cycle also works:
+`xrandr --output DP-2-3 --off && autorandr --load home --force`.
+
+Note: plain `autorandr --load <profile>` skips a profile that doesn't match the currently
+connected outputs; add `--force` to apply it anyway (used for testing `mobile` while docked).
+`autorandr --change` also only fires hooks when the profile actually changes (`Config already
+loaded` otherwise).
 
 ### Re-homing workspaces on the "home" profile (postswitch hook)
 
@@ -547,3 +575,15 @@ bindsym $mod+d exec --no-startup-id "rofi -modi drun -show drun -display-drun 'S
   (udev → `autorandr.service` → `autorandr --batch --change` → postswitch) and that the hook
   fires on a real switch (`autorandr --change --force`). Left to verify by a physical replug:
   that the `--batch` (system-service) environment lets the script reach i3.
+- **2026-09-29** — Debugged monitor hotplug after a real unplug/replug left the external
+  display stuck black. Findings: (1) X *does* detect MST hotplug here (watched
+  connected↔disconnected via `xrandr`), so detection was never the problem; (2) the batch
+  service reaches the session (`Running autorandr as aburgess for display :0`); (3) the real
+  gap was **no laptop-only profile** — autorandr only switches to a matching saved profile, so
+  unplug matched nothing and i3 kept the two-monitor layout, and with no profile transition the
+  DP link was never re-driven → blank on replug. Fix: created a `mobile` (laptop-only) profile
+  (`eDP-1` primary at 0x0, `DP-2-3` off; fingerprint = eDP-1 EDID only), verified both
+  directions apply (`autorandr --load … --force`) and that the `home` transition re-runs the
+  placement hook. Recovered the live blank screen with an off/on modeset. Documented recovery
+  commands and the two-profile requirement. Physical unplug/replug end-to-end test still to be
+  run by the user.
