@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+#
+# i3-power-menu -- a rofi power menu for i3.
+#
+# Presents Lock / Logout / Suspend / Reboot / Shutdown and runs the chosen action.
+# All actions go through systemd-logind (via polkit), so the active local session
+# needs no sudo/password. Launched from the polybar power glyph (custom/text
+# click-left) and bound to $mod+Escape in the i3 config.
+#
+# Icons are Font Awesome 6 Free (Solid) glyphs, generated with printf '\uXXXX' so the
+# source stays ASCII while the exact codepoints reach rofi. pango falls back to the FA
+# font per-glyph, so they render even though the rofi theme's font is not FA.
+
+set -euo pipefail
+
+# Glyphs: lock, sign-out, moon, rotate, power-off (Font Awesome 6 Free Solid).
+lock=$(printf '')
+logout=$(printf '')
+suspend=$(printf '')
+reboot=$(printf '')
+shutdown=$(printf '')
+
+options="$lock  Lock
+$logout  Logout
+$suspend  Suspend
+$reboot  Reboot
+$shutdown  Shutdown"
+
+chosen="$(printf '%s\n' "$options" | rofi -dmenu -i -p 'Power' -theme arthur)"
+
+# Match on the trailing label (the leading glyph varies).
+case "$chosen" in
+  *Lock)     xscreensaver-command -lock ;;
+  *Logout)   i3-msg exit ;;
+  *Suspend)  systemctl suspend ;;
+  *Reboot)   systemctl reboot ;;
+  *Shutdown) systemctl poweroff ;;
+  *)         exit 0 ;;   # dismissed (Escape / empty)
+esac

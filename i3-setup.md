@@ -236,7 +236,9 @@ aren't packaged in Fedora's repos, so Font Awesome 6 Free (Solid) is the reliabl
   can be re-run any time to respawn the bars.
 
 **Modules configured:** i3 workspaces (left) and, on the right: backlight, volume (pulseaudio),
-disk usage, memory, cpu, wifi, battery, clock, plus the tray. (No window-title module.)
+disk usage, memory, cpu, wifi, battery, clock, a **power** glyph, plus the tray. (No window-title
+module.) The power glyph is a `custom/text` module whose `click-left` runs `i3-power-menu` (see
+"Power menu" below).
 
 **Fonts / glyph icons:** two fonts are declared in `[bar/main]` — `font-0 = monospace` for text
 and `font-1 = Font Awesome 6 Free:style=Solid` for icons. Modules select the icon font with the
@@ -259,6 +261,20 @@ changes. To fully respawn bars for a newly-connected monitor after dock/undock, 
 **Activate / reload:** after editing the config, `~/.config/polybar/launch.sh` (or `$mod+Shift+r`
 to restart i3, which re-runs it). Per-monitor logs go to `/tmp/polybar-<output>.log` — check
 there if a bar doesn't appear (e.g. a module type unsupported by the packaged build).
+
+## Power menu (i3-power-menu)
+
+`~/bin/i3-power-menu` (tracked as `bin/i3-power-menu`, symlinked by `install.sh`) is a small
+rofi menu offering **Lock / Logout / Suspend / Reboot / Shutdown**. It's reachable two ways:
+
+- the **power glyph** at the right end of polybar (`custom/text` module, `click-left`), and
+- the **`$mod+Escape`** keybinding in the i3 config.
+
+The actions go through systemd-logind (`systemctl suspend|reboot|poweroff`, `i3-msg exit`,
+`xscreensaver-command -lock`), so the active local session runs them via polkit with **no sudo**.
+(Reboot/shutdown may prompt for authentication if another user session is also logged in.) The
+menu labels carry Font Awesome glyphs generated with `printf '\uXXXX'`; pango falls back to the
+FA font per-glyph, so they render even though the rofi `arthur` theme's font isn't FA.
 
 ## Launcher / window switching (rofi)
 
@@ -710,3 +726,6 @@ emit with `xev` (they may produce different keysyms) and adjust the bindings.
   cpu (microchip), wifi, and clock (calendar) to icons; battery now uses a capacity ramp with a
   charging bolt. Added `fontawesome-6-free-fonts` to install.sh. Glyphs stored as literal UTF-8,
   injected from ASCII placeholders via `perl -CSD` to guarantee exact codepoints.
+- **2026-09-29** — Added a **power menu**: `bin/i3-power-menu` (rofi: Lock/Logout/Suspend/Reboot/
+  Shutdown via systemd-logind, no sudo). Reachable from a new polybar power glyph (`custom/text`,
+  click-left) and the `$mod+Escape` keybinding. New doc section "Power menu (i3-power-menu)".
