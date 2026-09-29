@@ -1,6 +1,6 @@
 #! /bin/bash
 
-docroot=/home/andrew/Documents/
+docroot=${HOME}/Documents/
 rofibin=rofi
 
 pdfname=`find ${docroot} -name "*.pdf" \
@@ -11,5 +11,5 @@ fullname="${docroot}${pdfname}"
 
 if [ -n "${pdfname}" -a -e "${fullname}" ]
 then
-        exec evince "${fullname}"
+        exec papers "${fullname}"
 fi

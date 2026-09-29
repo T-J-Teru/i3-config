@@ -290,6 +290,30 @@ Other i3 helper scripts also found in `~/bin` (not all wired to bindings yet):
 `i3-setup-keyboard`, `i3-toggle-selected-output.py`, `i3-toggl-select`,
 `i3-rename-workspace`.
 
+## Other helper-script bindings
+
+Additional bindings from the old setup, backed by scripts in `bin/`:
+
+| Binding        | Script                          | Purpose                              | Status |
+| -------------- | ------------------------------- | ------------------------------------ | ------ |
+| `$mod+Tab`     | `i3-toggle-selected-output.py`  | Cycle focus through active outputs    | ✅ working (`python3-i3ipc`) |
+| `$mod+Shift+p` | `i3-pdf-select`                 | Fuzzy-find a PDF under `~/Documents` and open it | ✅ working (rofi + `papers`) |
+| `` $mod+grave `` | `i3-toggl-select`             | Toggl time-tracker project switcher   | ❌ disabled — needs `toggl` CLI |
+
+Notes / fixes applied:
+
+- **`i3-pdf-select`**: had a hardcoded `docroot=/home/andrew/Documents/` → changed to
+  `${HOME}/Documents/`. It called **`evince`**, which Fedora 44 replaced with **`papers`**
+  (evince's successor) → switched to `papers` (added to `install.sh`). Uses the built-in
+  rofi `arthur` theme in dmenu mode.
+- **`i3-toggle-selected-output.py`**: uses `python3-i3ipc` (already installed); shebang
+  `#! /bin/env python3` works. No changes needed.
+- **`i3-toggl-select`** (DISABLED): a personal Toggl time-tracking integration. It shells
+  out to a `toggl` CLI that is **not packaged in dnf** and requires a configured Toggl
+  account/API token. It also pokes `py3status`/`i3status` with `killall -USR1` to refresh
+  the bar (harmless if `py3status` is absent). Binding is staged (commented) in the config
+  pending a decision on whether to keep using Toggl.
+
 ## Follow-ups / ideas
 
 - Version-control `~/.xscreensaver` once locking preferences are tuned.
@@ -361,3 +385,8 @@ Other i3 helper scripts also found in `~/bin` (not all wired to bindings yet):
   (verified scripts still run). Added `install.sh` (packages + idempotent symlinks),
   `README.md`, `.gitignore`. Dropped `dmenu` from the package list (replaced by rofi).
   Chose grouped-by-app layout over GNU stow. `git init` + initial commit.
+- **2026-09-29** — Wired three more bindings. `$mod+Tab`
+  (i3-toggle-selected-output.py) and `$mod+Shift+p` (i3-pdf-select) enabled and working;
+  fixed i3-pdf-select's hardcoded path (`/home/andrew`→`$HOME`) and swapped `evince`→
+  `papers` (added `papers` to install.sh). `$mod+grave` (i3-toggl-select) left disabled —
+  needs the un-packaged `toggl` CLI + a Toggl account; binding staged commented.

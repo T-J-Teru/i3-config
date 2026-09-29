@@ -30,6 +30,9 @@ PACKAGES=(
   # Launcher / window & workspace switcher.
   rofi
 
+  # PDF viewer opened by i3-pdf-select (Fedora's evince successor).
+  papers
+
   # Perl modules used by i3-rename-workspace.
   perl-indirect perl-JSON-Parse perl-Carp-Assert
 
