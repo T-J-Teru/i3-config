@@ -213,6 +213,42 @@ binding uses `--new-window` so each Mod+Return spawns a fresh window for i3 to t
 (`-s`/`--standalone` would also work but starts a whole separate instance — heavier and
 with unsynced settings; `--new-window` is preferred.)
 
+## Status bar (polybar)
+
+polybar replaces the built-in i3bar + i3status. (i3status is kept installed as a fallback; the
+old `bar {}` block is preserved commented-out in the i3 config.)
+
+**Install:**
+
+```bash
+sudo dnf install -y polybar
+```
+
+**Files** (version-controlled under `dotfiles/polybar/`, symlinked by `install.sh`):
+
+- `~/.config/polybar/config.ini` — the bar definition and modules.
+- `~/.config/polybar/launch.sh` — starts **one bar per connected monitor**, with the system
+  tray only on the primary output. Launched from the i3 config via
+  `exec_always --no-startup-id $HOME/.config/polybar/launch.sh`, so it re-runs on i3 restart and
+  can be re-run any time to respawn the bars.
+
+**Modules configured:** i3 workspaces (left), focused window title (center), and on the right:
+backlight, volume (pulseaudio), memory, cpu, wifi, battery, clock, plus the tray. Labels are
+plain text on a `monospace` font (no icon-font dependency) — swap in a Nerd Font later for
+glyphs.
+
+**Machine-specific values** baked into `config.ini` (change per machine; commands to find them
+are noted inline in the file): battery `BAT0` / adapter `AC` (`/sys/class/power_supply`), wifi
+`wlp0s20f3` (`/sys/class/net`), backlight `intel_backlight` (`/sys/class/backlight`).
+
+**Multi-monitor / hotplug:** `screenchange-reload = true` makes each bar reload on output
+changes. To fully respawn bars for a newly-connected monitor after dock/undock, re-run
+`launch.sh` (a natural future addition to the autorandr `postswitch` hook).
+
+**Activate / reload:** after editing the config, `~/.config/polybar/launch.sh` (or `$mod+Shift+r`
+to restart i3, which re-runs it). Per-monitor logs go to `/tmp/polybar-<output>.log` — check
+there if a bar doesn't appear (e.g. a module type unsupported by the packaged build).
+
 ## Launcher / window switching (rofi)
 
 rofi (Fedora repo) replaces dmenu as the launcher and adds window/workspace switchers.
@@ -648,6 +684,12 @@ emit with `xev` (they may produce different keysyms) and adjust the bindings.
   (logind + udev). Bound `XF86MonBrightnessUp/Down` to `brightnessctl set 5%+/-`; added the
   package to install.sh and a "Display brightness" doc section. Backlight device:
   `intel_backlight`.
+- **2026-09-29** — Switched the status bar from i3bar/i3status to **polybar**. Added a
+  starter `dotfiles/polybar/config.ini` (i3 workspaces, window title, backlight, volume, memory,
+  cpu, wifi, battery, clock, tray; plain-text labels on monospace) and `launch.sh` (one bar per
+  connected monitor, tray on primary). Replaced the i3 `bar {}` block with `exec_always ...
+  launch.sh` (old block kept commented as fallback). Added polybar to install.sh + symlinks.
+  Baked in machine-specific names: battery BAT0/AC, wifi wlp0s20f3, backlight intel_backlight.
 - **2026-09-29** — Fixed the clock: machine shipped on `US/Eastern` (EDT) so `date`/i3bar
   showed the wrong local time (UTC/NTP were correct). `sudo timedatectl set-timezone
   Europe/London`. Added a `configure_timezone` step to install.sh and a "Timezone" doc section.

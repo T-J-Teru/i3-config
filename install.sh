@@ -24,8 +24,12 @@ PACKAGES=(
   # Xorg server + startup glue -- i3 is X11 and Fedora ships Wayland-only by default.
   xorg-x11-server-Xorg xorg-x11-xinit
 
-  # i3 window manager + status bar + screen saver/locker.
+  # i3 window manager + screen saver/locker. (i3status kept as an i3bar fallback;
+  # the active status bar is polybar, below.)
   i3 i3status xscreensaver
+
+  # Status bar (replaces i3bar/i3status). See "Status bar (polybar)" in i3-setup.md.
+  polybar
 
   # Launcher / window & workspace switcher.
   rofi
@@ -80,6 +84,10 @@ create_symlinks() {
 
   # rofi custom theme (arthur-entry; the plain 'arthur' theme is built into rofi)
   link "$REPO/dotfiles/rofi/arthur-entry.rasi" "$HOME/.config/rofi/arthur-entry.rasi"
+
+  # polybar config + per-monitor launch script
+  link "$REPO/dotfiles/polybar/config.ini" "$HOME/.config/polybar/config.ini"
+  link "$REPO/dotfiles/polybar/launch.sh" "$HOME/.config/polybar/launch.sh"
 
   # Desktop-entry overrides (add search keywords etc.). ~/.local/share/applications
   # takes precedence over /usr/share/applications.
