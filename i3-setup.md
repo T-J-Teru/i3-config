@@ -311,6 +311,37 @@ Notes / fixes applied:
   `toggl` CLI not packaged in dnf plus a configured Toggl account, and is no longer used.
   Binding, script (`bin/i3-toggl-select`), and its `~/bin` symlink were removed.
 
+## Keyboard: Caps Lock as Ctrl
+
+Preference: Caps Lock should act as an extra Ctrl key (`ctrl:nocaps`).
+
+The old setup used a custom `i3-setup-keyboard` script — a background loop that ran
+`setxkbmap -option ctrl:nocaps`, then used `inotifywait` on `/dev/input/` to re-apply it
+whenever a keyboard was hotplugged (because `setxkbmap` only configures currently-attached
+devices). That needed `inotify-tools` and a permanent background process.
+
+**Replaced with the native mechanism.** Xorg applies XKB options from an `InputClass`
+(`MatchIsKeyboard "on"`) to every keyboard as it is plugged in, so no watcher is needed.
+That config is managed by `localectl`:
+
+```bash
+sudo localectl set-x11-keymap gb pc105 "" ctrl:nocaps
+```
+
+This writes `XkbOptions "ctrl:nocaps"` into `/etc/X11/xorg.conf.d/00-keyboard.conf`
+(the file was already localectl-managed with `XkbLayout "gb"`). To apply to the running
+X session without a re-login, also run `setxkbmap -option ctrl:nocaps` once
+(`install.sh` does this).
+
+Notes:
+
+- System-wide (needs sudo; also affects the virtual console). Fine for a personal remap.
+- The GNOME session runs on **Wayland**, which reads its own keyboard options (gsettings),
+  not this file. This covers **i3 (X11)** fully; a separate `gsettings` tweak would be
+  needed to get the same remap inside GNOME.
+- `i3-setup-keyboard` and its `~/bin` symlink were removed; no `inotify-tools` needed.
+- The `localectl` command uses layout `gb` (this machine). Change it for a different layout.
+
 ## Follow-ups / ideas
 
 - Version-control `~/.xscreensaver` once locking preferences are tuned.
@@ -390,3 +421,9 @@ Notes / fixes applied:
 - **2026-09-29** — Dropped the Toggl integration entirely (no longer used): removed the
   `$mod+grave` binding, `git rm bin/i3-toggl-select`, removed its `~/bin` symlink, and
   cleaned up the docs.
+- **2026-09-29** — Keyboard (Caps→Ctrl): replaced the `i3-setup-keyboard` watch-loop
+  script with the native `localectl set-x11-keymap gb pc105 "" ctrl:nocaps` (Xorg applies
+  it to hotplugged keyboards via InputClass; no `inotify-tools`/background process needed).
+  Applied to the live session with `setxkbmap`, added a `configure_keyboard` step to
+  install.sh, and `git rm`'d the script + `~/bin` symlink. (`inotifywait` wasn't even
+  installed, so the old loop was already non-functional here.)

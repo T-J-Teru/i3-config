@@ -81,12 +81,29 @@ create_symlinks() {
 }
 
 #-----------------------------------------------------------------------------#
+# 3. System keyboard config
+#-----------------------------------------------------------------------------#
+
+# Make Caps Lock a Ctrl key (ctrl:nocaps), applied to every keyboard including
+# hotplugged ones. localectl writes the managed /etc/X11/xorg.conf.d/00-keyboard.conf,
+# which Xorg applies via an InputClass -- no background watcher needed. System-wide
+# (also affects the TTY). GNOME-on-Wayland reads its own settings, not this file.
+# NOTE: layout 'gb' below matches this machine; change if setting up a different layout.
+configure_keyboard() {
+  echo ">> Configuring keyboard (Caps->Ctrl) via localectl (sudo)..."
+  sudo localectl set-x11-keymap gb pc105 "" ctrl:nocaps
+  # Apply to the running X session immediately (no re-login needed).
+  command -v setxkbmap >/dev/null && setxkbmap -option ctrl:nocaps || true
+}
+
+#-----------------------------------------------------------------------------#
 # main
 #-----------------------------------------------------------------------------#
 
 main() {
   if [[ "${1:-}" != "--links" ]]; then
     install_packages
+    configure_keyboard
   fi
   create_symlinks
   echo
