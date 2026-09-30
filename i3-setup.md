@@ -348,6 +348,36 @@ docks (polybar), the desktop/wallpaper, `notification` windows and the deadd cen
 transient helpers. The dock/notification/deadd excludes are new here (the old machine
 had neither polybar nor deadd); the rest port the old script's `--focus-exclude` rules.
 
+## Desktop wallpaper (feh)
+
+i3 draws nothing on the X root window, so without help the desktop is a blank grey. `feh`
+paints it — the same lightweight tool the old machine used (it left a `~/.fehbg`). In a
+tiler the wallpaper is only visible briefly before a window covers it, so this is kept
+deliberately simple: a random image per monitor, re-rolled on each i3 start.
+
+`bin/i3-wallpaper` collects the images under `~/Pictures/Wallpapers` (recursively — the set
+lives in a `digitalblasphemy/` subdir) and runs:
+
+```
+feh --bg-fill --randomize <all images>
+```
+
+`--bg-fill` scales/crops each image to fill its monitor without distortion; given several
+files feh assigns **one image per monitor**, and `--randomize` shuffles the list first, so
+each monitor gets its own random image every run. feh also writes `~/.fehbg` (a re-runnable
+restore script) as a side effect.
+
+It's wired in two places:
+
+- **i3 config** — `exec_always --no-startup-id i3-wallpaper`, so the wallpaper re-rolls on
+  every i3 start/restart.
+- **autorandr `postswitch` hook** — repaints after any layout change, so on dock/undock each
+  now-active monitor gets a correctly-sized image for the new geometry.
+
+The script no-ops with a message if feh isn't installed or the directory has no images.
+Swap in your own pictures by dropping them in `~/Pictures/Wallpapers` (or pass a different
+directory as the first argument). `feh` is installed by `install.sh`.
+
 ## Notifications (deadd)
 
 i3 ships no notification daemon, so out of the box `notify-send` fails with
@@ -1082,3 +1112,10 @@ just toggles `pactl set-source-mute` directly.
   `disable_pcspkr_beep` (sudo-copies the file, then `modprobe -r pcspkr` so it stops without a
   reboot). Verified `pcspkr` unloaded and the file installed root-owned. New "Silencing the
   PC-speaker beep" doc section.
+- **2026-09-30** — Added a **desktop wallpaper** (previously blank grey root window). New
+  `bin/i3-wallpaper` paints a random image per monitor from `~/Pictures/Wallpapers` with
+  `feh --bg-fill --randomize` (one image per monitor; `--bg-fill` fills without distortion).
+  Kept deliberately simple — in a tiler the wallpaper only shows briefly before a window
+  covers it. Wired via `exec_always` (re-rolls on i3 start/restart) and the autorandr
+  `postswitch` hook (repaints per-monitor on dock/undock). Added `feh` to `install.sh`. Ports
+  the old machine's feh/`.fehbg` mechanism. New "Desktop wallpaper (feh)" doc section.

@@ -50,6 +50,12 @@ exec_always --no-startup-id "pkill -x picom; sleep 0.5; exec picom --config $HOM
 # theme flips those to bright near-white; full-colour app icons are unaffected.
 exec_always --no-startup-id "pkill -x deadd-notificat; sleep 0.5; exec env GTK_THEME=Adwaita:dark deadd-notification-center"
 
+# Desktop wallpaper: a random image per monitor from ~/Pictures/Wallpapers, via
+# feh (see "Desktop wallpaper (feh)" in i3-setup.md). exec_always re-rolls it on
+# each i3 start/restart; the autorandr postswitch hook also repaints it on
+# dock/undock so each monitor gets a correctly-sized image for the new layout.
+exec_always --no-startup-id i3-wallpaper
+
 # nm-applet and pactl (below) are a popular choice. Modify as you see fit.
 
 # Screen saver + locking via xscreensaver (chosen over i3lock; see i3-setup.md).

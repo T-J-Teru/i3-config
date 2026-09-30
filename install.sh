@@ -49,6 +49,10 @@ PACKAGES=(
   # Display backlight control, bound to the brightness keys in the i3 config.
   brightnessctl
 
+  # Sets the desktop wallpaper on the X root window (i3-wallpaper). See
+  # "Desktop wallpaper (feh)" in i3-setup.md.
+  feh
+
   # PDF viewer opened by i3-pdf-select (Fedora's evince successor).
   papers
 

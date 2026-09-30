@@ -19,3 +19,7 @@ case "$AUTORANDR_CURRENT_PROFILE" in
         i3-fix-workspace-placement.py
         ;;
 esac
+
+# Repaint the wallpaper for whatever monitors are now active, so each gets a
+# correctly-sized random image after a dock/undock. Runs for every profile.
+i3-wallpaper

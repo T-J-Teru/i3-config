@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+#
+# i3-wallpaper -- paint a random desktop wallpaper, one image per monitor.
+#
+# Collects the images under the wallpaper directory and hands them to feh:
+# --bg-fill scales/crops each image to fill its monitor without distortion, and
+# when feh is given several files it uses one per monitor. --randomize shuffles
+# the list first, so every monitor gets its own random image on each run. feh
+# writes ~/.fehbg (a re-runnable restore script) as a side effect.
+#
+# Called from the i3 config (exec_always -> re-rolls on each i3 start/restart)
+# and from the autorandr postswitch hook (repaints for the new geometry on
+# dock/undock). Safe no-op-with-message if feh or the images are missing.
+#
+# Optional 1st arg: wallpaper directory (default ~/Pictures/Wallpapers).
+# See "Desktop wallpaper (feh)" in i3-setup.md.
+
+set -euo pipefail
+
+dir="${1:-$HOME/Pictures/Wallpapers}"
+
+if ! command -v feh >/dev/null; then
+  echo "i3-wallpaper: feh not installed" >&2
+  exit 1
+fi
+
+# Recurse (the collection lives in a subdirectory) and be NUL-safe for odd names.
+mapfile -d '' -t images < <(find "$dir" -type f \
+  \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' \) -print0 2>/dev/null)
+
+if (( ${#images[@]} == 0 )); then
+  echo "i3-wallpaper: no images found under $dir" >&2
+  exit 1
+fi
+
+exec feh --bg-fill --randomize "${images[@]}"
