@@ -1,3 +1,18 @@
+<!--
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
 # i3 Window Manager Setup
 
 Steps to set up the [i3 window manager](https://i3wm.org/) on a Fedora Workstation
@@ -1325,3 +1340,16 @@ just toggles `pactl set-source-mute` directly.
   dialog, not exported session-wide), and pointed `SSH_ASKPASS` at the wrapper in
   `dotfiles/bashrc.d/ssh-askpass.sh`. shellcheck clean; verified the dialog now matches the
   dark session.
+- **2026-09-30** — Audited the whole git history (`git grep` across `git rev-list --all`, plus
+  the full added-path list) for anything that shouldn't go public — IPs, ssh-related files,
+  passwords, internal hostnames. Clean: only benign hardware device names and a placeholder
+  `1.2.3.4` in a comment. Name/Red Hat email are already public (fine).
+- **2026-09-30** — Licensed the repo under **GPLv3**: added `LICENSE` (full text) and the
+  standard licence-grant header to every file we authored — all `bin/*` scripts, `install.sh`,
+  and the `dotfiles/` pieces we wrote (`autorandr/postswitch`, `bashrc.d/ssh-askpass.sh`,
+  `modprobe.d/nobeep.conf`, `deadd/deadd.yml`, `deadd/deadd.css`, `picom/picom.conf`), plus
+  this doc and the README. Comment syntax adapted per file type (`#`, `/* */`, invisible
+  `<!-- -->`); the header sits after the shebang on scripts. Machine-generated / template-
+  derived files were left unheadered (`xscreensaver`, the i3 config, both polybar files, the
+  rofi theme, the arandr `.desktop`). All touched scripts still pass `bash -n`/`py_compile`/
+  `perl -c`/shellcheck.
