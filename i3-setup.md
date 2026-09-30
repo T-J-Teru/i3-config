@@ -303,6 +303,28 @@ The actions go through systemd-logind (`systemctl suspend|reboot|poweroff`, `i3-
 menu labels carry Font Awesome glyphs generated with `printf '\uXXXX'`; pango falls back to the
 FA font per-glyph, so they render even though the rofi `arthur` theme's font isn't FA.
 
+### System mode (`$mod+Shift+e`, i3-exit)
+
+A second, keyboard-driven way to reach the same session actions, ported from the old machine
+(which used it in place of i3's default "really exit?" i3-nagbar prompt — that nagbar binding
+has been removed). `$mod+Shift+e` enters a nested i3 **mode** whose title bar spells out the
+keys:
+
+```
+System (l) lock, (e) logout, (s) suspend, (h) hibernate, (r) reboot, (Shift+s) shutdown
+```
+
+Each key runs `bin/i3-exit <action>` and drops back to default mode (`Enter`/`Escape` also
+exit the mode). The two menus coexist deliberately: `$mod+Escape` for the mouse-friendly rofi
+list, `$mod+Shift+e` for the pure-keyboard mnemonic mode.
+
+`bin/i3-exit` is the old machine's script (renamed from `i3exit` to match the repo's `i3-*`
+naming). It confirms the destructive actions with a **zenity** yes/no dialog (labels swapped so
+the safe "No" is the default button), locks via `xscreensaver-command -lock`, and runs the
+power actions through systemd-logind — same no-sudo path as `i3-power-menu`. Modernized on the
+way in: `#!/usr/bin/env bash` shebang, and the dead XFCE branch in `logout()` dropped (this is
+an i3-only machine, so logout is just `i3-msg exit`). `zenity` is installed by `install.sh`.
+
 ## Compositor (picom)
 
 i3 has no compositor of its own, so without one there's no translucency, shadows or
@@ -1179,3 +1201,11 @@ just toggles `pactl set-source-mute` directly.
   rofi modi. Added `qalculate` + `rxvt-unicode` to `install.sh`. New "Scratchpad (qalc
   calculator)" doc section. Verified: qalc computes and the window floats, centres, and stashes
   in the scratchpad.
+- **2026-09-30** — Restored the old machine's **System mode** on `$mod+Shift+e`, replacing i3's
+  default "really exit?" i3-nagbar binding (removed). It's a nested i3 mode (lock/logout/suspend/
+  hibernate/reboot/shutdown) that runs `bin/i3-exit` — the old `i3exit` script, renamed to match
+  the repo's `i3-*` scripts and modernized (bash shebang; dropped the dead XFCE branch so logout
+  is just `i3-msg exit`). Destructive actions are zenity-confirmed; lock uses xscreensaver; power
+  actions go via systemd-logind (no sudo). Kept alongside the `$mod+Escape` rofi power menu on
+  purpose (keyboard mode vs. mouse list). Added `zenity` to `install.sh`. New "System mode"
+  doc subsection. Verified the mode registers in i3 and `i3-exit` dispatches.

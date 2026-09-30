@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+#
+# i3-exit -- session actions (lock / logout / suspend / hibernate / reboot /
+# shutdown) for the i3 "System" mode ($mod+Shift+e). A lighter, keyboard-driven
+# alternative to the rofi power menu on $mod+Escape (i3-power-menu).
+#
+# The destructive actions ask for confirmation via a zenity dialog first; lock
+# uses xscreensaver, and the power actions go through systemd-logind (no sudo).
+# Called from the i3 config's `mode "$mode_system"` block. See "Power menu /
+# System mode" in i3-setup.md.
+
+lock() {
+    xscreensaver-command -lock
+}
+
+logout() {
+    i3-msg exit
+}
+
+# confirm ACTION -- pop a yes/no dialog; return 0 (proceed) only if confirmed.
+# The labels are deliberately swapped (Cancel = "Yes", OK = "No") so the safe
+# option ("No") is the default/highlighted button.
+confirm() {
+    zenity --question \
+           --text="Really $1?" \
+           --cancel-label="Yes" \
+           --ok-label="No"
+    if [ $? = 1 ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+case "$1" in
+    lock)
+        lock
+        ;;
+    logout)
+        confirm logout && logout
+        ;;
+    suspend)
+        confirm suspend && lock && systemctl suspend
+        ;;
+    hibernate)
+        confirm hibernate && lock && systemctl hibernate
+        ;;
+    reboot)
+        confirm reboot && systemctl reboot
+        ;;
+    shutdown)
+        confirm shutdown && systemctl poweroff
+        ;;
+    *)
+        echo "Usage: $0 {lock|logout|suspend|hibernate|reboot|shutdown}"
+        exit 2
+        ;;
+esac
+
+exit 0

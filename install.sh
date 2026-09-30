@@ -60,6 +60,10 @@ PACKAGES=(
   # PDF viewer opened by i3-pdf-select (Fedora's evince successor).
   papers
 
+  # Confirmation dialogs for the i3-exit session actions (System mode). See
+  # "Power menu / System mode" in i3-setup.md.
+  zenity
+
   # Perl modules used by i3-rename-workspace.
   perl-indirect perl-JSON-Parse perl-Carp-Assert
 

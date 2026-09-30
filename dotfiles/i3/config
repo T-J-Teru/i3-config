@@ -282,8 +282,24 @@ bindsym $mod+Shift+0 move container to workspace number $ws10
 bindsym $mod+Shift+c reload
 # restart i3 inplace (preserves your layout/session, can be used to upgrade i3)
 bindsym $mod+Shift+r restart
-# exit i3 (logs you out of your X session)
-bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -B 'Yes, exit i3' 'i3-msg exit'"
+# System mode: a nested keymap for session actions (lock/logout/suspend/hibernate/
+# reboot/shutdown), a keyboard-driven alternative to the rofi power menu on
+# $mod+Escape. Each key runs bin/i3-exit (destructive actions are zenity-confirmed)
+# and returns to default mode. See "Power menu / System mode" in i3-setup.md.
+set $mode_system System (l) lock, (e) logout, (s) suspend, (h) hibernate, (r) reboot, (Shift+s) shutdown
+mode "$mode_system" {
+        bindsym l exec --no-startup-id i3-exit lock, mode "default"
+        bindsym e exec --no-startup-id i3-exit logout, mode "default"
+        bindsym s exec --no-startup-id i3-exit suspend, mode "default"
+        bindsym h exec --no-startup-id i3-exit hibernate, mode "default"
+        bindsym r exec --no-startup-id i3-exit reboot, mode "default"
+        bindsym Shift+s exec --no-startup-id i3-exit shutdown, mode "default"
+
+        # back to normal: Enter or Escape
+        bindsym Return mode "default"
+        bindsym Escape mode "default"
+}
+bindsym $mod+Shift+e mode "$mode_system"
 
 # resize window (you can also use the mouse for that)
 mode "resize" {
