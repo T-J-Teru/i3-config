@@ -707,6 +707,25 @@ outputs are active, so it is safe to run any time.
   `i3-msg -t get_outputs` and update them on a new machine.
 - You can still run `i3-fix-workspace-placement.py` by hand at any time.
 
+### Pinning the numbered workspaces to the laptop
+
+Complementing the 20-29-on-external rule, the ten numbered workspaces (1-10, the number-row
+keys) are **pinned to the primary output** so they always open on the laptop panel — which is
+where they're expected regardless of which monitor happens to have focus. This is a static i3
+directive (not a script), one line per workspace in the config:
+
+```
+workspace $ws1 output primary
+...
+workspace $ws10 output primary
+```
+
+The special **`primary`** keyword is used rather than a hardcoded `eDP-1`, so it stays
+machine-independent: it resolves to whatever xrandr marks primary (the laptop panel here, set
+by autorandr). An assignment takes effect when the workspace is next created/shown — verified
+that opening a fresh numbered workspace while focused on the external monitor still lands it on
+the laptop.
+
 ### Finding ARandR in the launcher by "Display"
 
 The packaged `arandr.desktop` has `Name=ARandR` and `GenericName=Screen Settings`, so rofi
@@ -1029,3 +1048,8 @@ just toggles `pactl set-source-mute` directly.
   step as its second argument (default 5%); bound the `Shift+` variants of the volume and brightness
   raise/lower keys to a 1% step. Ports the old machine's fine-volume keys and extends the same idea
   to brightness. Verified ±1% vs the default ±5%.
+- **2026-09-30** — **Pinned the numbered workspaces (1-10) to the primary output** so they always
+  open on the laptop panel. Added `workspace $wsN output primary` for each; used i3's `primary`
+  keyword instead of a hardcoded `eDP-1` to stay machine-independent. Ports the old machine's
+  workspace-to-output pinning. Verified a fresh numbered workspace opens on the laptop even when the
+  external monitor has focus.

@@ -215,6 +215,21 @@ set $ws8 "8"
 set $ws9 "9"
 set $ws10 "10"
 
+# Pin all ten numbered workspaces to the primary output so they always live on
+# the laptop panel (eDP-1 is the primary, set by autorandr/xrandr). The special
+# `primary` keyword keeps this machine-independent -- no hardcoded output name.
+# External monitors get other workspaces (e.g. via $mod+Shift+minus).
+workspace $ws1 output primary
+workspace $ws2 output primary
+workspace $ws3 output primary
+workspace $ws4 output primary
+workspace $ws5 output primary
+workspace $ws6 output primary
+workspace $ws7 output primary
+workspace $ws8 output primary
+workspace $ws9 output primary
+workspace $ws10 output primary
+
 # switch to workspace
 bindsym $mod+1 workspace number $ws1
 bindsym $mod+2 workspace number $ws2
