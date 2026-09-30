@@ -587,9 +587,8 @@ back into the home directory, and `install.sh` records the package list. `~/lib`
 `i3-rename-workspace` was modernized to core Perl.
 
 Other i3 helper scripts also found in `~/bin` (not all wired to bindings yet):
-`i3-fix-workspace-placement.py`, `i3-pdf-select`, `i3-presentation-mode-warning`,
-`i3-setup-keyboard`, `i3-toggle-selected-output.py`, `i3-toggl-select`,
-`i3-rename-workspace`.
+`i3-fix-workspace-placement.py`, `i3-pdf-select`, `i3-setup-keyboard`,
+`i3-toggle-selected-output.py`, `i3-rename-workspace`.
 
 ## Other helper-script bindings
 
@@ -1223,3 +1222,8 @@ just toggles `pactl set-source-mute` directly.
   `[ p ] && [ q ]` (SC2006/SC2086/SC2166); dropped the obsolete `x`-prefix comparison in
   `i3-presentation-mode-warning` (SC2268). All behavior-preserving; the workspace-listing scripts
   reverified. shellcheck now passes clean on all shell scripts.
+- **2026-09-30** — Removed **`i3-presentation-mode-warning`**, an XFCE-era leftover that watched
+  xscreensaver and warned (via `xfconf-query`/`xfce4-power-manager`) when presentation mode was
+  left on. Those XFCE tools aren't on this machine and it was never wired into the i3 config; if
+  the need returns it's easier to rewrite fresh than to carry it. Deleted the script and its
+  `~/bin` symlink, and dropped it from the helper-scripts list.
