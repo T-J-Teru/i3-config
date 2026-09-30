@@ -238,15 +238,17 @@ aren't packaged in Fedora's repos, so Font Awesome 6 Free (Solid) is the reliabl
 
 **Modules configured:** i3 workspaces (left) and, on the right: backlight, volume (pulseaudio),
 disk usage, memory, cpu, wifi, battery, clock, and — **on the primary display only** — a
-**power** glyph, plus the tray. (No window-title module.) The power glyph is a `custom/text`
-module whose `click-left` runs `i3-power-menu` (see "Power menu" below).
+**notifications** bell and a **power** glyph, plus the tray. (No window-title module.) Both are
+`custom/text` modules: the power glyph's `click-left` runs `i3-power-menu` (see "Power menu"
+below); the bell's `click-left` runs `pkill -SIGUSR1 -x deadd-notificat`, which toggles the deadd
+notification center open/closed (the same SIGUSR1 toggle noted under "Notifications (deadd)").
 
-**Primary-only power glyph / tray.** polybar can't conditionally drop a module from a single
-bar's `modules-*` list (an `${env:...}` placeholder there is read as a literal module name, not
-interpolated), so the difference is expressed as two bars: `[bar/secondary]` uses `inherit =
-bar/main` and overrides only `modules-right` to omit `power`. `launch.sh` runs `polybar main` on
-the primary output and `polybar secondary` on the rest. The tray is separate — gated by the
-`TRAY_POSITION` env var (`right` on primary, `none` elsewhere).
+**Primary-only bell / power glyph / tray.** polybar can't conditionally drop a module from a
+single bar's `modules-*` list (an `${env:...}` placeholder there is read as a literal module name,
+not interpolated), so the difference is expressed as two bars: `[bar/secondary]` uses `inherit =
+bar/main` and overrides only `modules-right` to omit `notifications` and `power`. `launch.sh` runs
+`polybar main` on the primary output and `polybar secondary` on the rest. The tray is separate —
+gated by the `TRAY_POSITION` env var (`right` on primary, `none` elsewhere).
 
 **Click-to-details.** The bar only has room for a glyph + one number per module, so the
 `cpu`, `memory` and `battery` modules are left-clickable: clicking one fires a deadd
@@ -961,3 +963,7 @@ just toggles `pactl set-source-mute` directly.
   separate `[bar/secondary]` that `inherit`s `bar/main` and overrides `modules-right` to drop
   `power`. `launch.sh` runs `polybar main` on the primary output and `polybar secondary` elsewhere.
   Verified: primary bar loads 10 modules (power + tray), secondary loads 9 (ends at the clock).
+- **2026-09-30** — Added a **notification-center bell** glyph to polybar, next to the power glyph
+  and (like it) on the primary display only. It's a `custom/text` module whose `click-left` sends
+  `pkill -SIGUSR1 -x deadd-notificat`, toggling the deadd center open/closed. Dropped from
+  `[bar/secondary]`'s `modules-right` alongside `power`, so it too is primary-display only.
