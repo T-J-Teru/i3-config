@@ -222,11 +222,18 @@ should hold unlocked keys exists and lives as long as the session does.
 
 2. **The prompt was a terminal prompt, not a GUI box.** No askpass helper was installed and
    `SSH_ASKPASS_REQUIRE` was unset. Installing **`openssh-askpass`** provides the GTK dialog
-   at `/usr/libexec/openssh/ssh-askpass` (the path `ssh` looks for), and
+   (`gnome-ssh-askpass`, at `/usr/libexec/openssh/ssh-askpass`), and
    **`SSH_ASKPASS_REQUIRE=prefer`** tells `ssh` to use that GUI helper *even when it has a
    controlling terminal* (the default only uses it when there's no tty, which is why a push
    from a terminal would otherwise still prompt inline). Both env vars are set in
    `dotfiles/bashrc.d/ssh-askpass.sh`.
+
+   **Dark theme.** `gnome-ssh-askpass` is GTK3 and — exactly like deadd — doesn't pick up the
+   dark preference under i3, so it renders in light Adwaita against the dark session. So
+   `SSH_ASKPASS` points not at the binary directly but at **`bin/ssh-askpass-dark`**, a
+   one-line wrapper that runs it with `GTK_THEME=Adwaita:dark`. The theme override is scoped to
+   the dialog (set in the wrapper's `exec env …`) rather than exported session-wide, so it
+   doesn't restyle every other GTK app launched from a terminal.
 
 **Where the env vars live.** Fedora's stock `~/.bashrc` sources every file in `~/.bashrc.d/`,
 so the setting is a repo-tracked drop-in — `dotfiles/bashrc.d/ssh-askpass.sh`, symlinked to
@@ -1312,3 +1319,9 @@ just toggles `pactl set-source-mute` directly.
   `SSH_ASKPASS_REQUIRE=prefer` so `ssh` uses the dialog even from a terminal. New section
   "SSH agent / passphrase caching". shellcheck clean; verified `AddKeysToAgent` resolves
   (`ssh -G`) and the env vars load in a fresh shell. Needs `sudo dnf install openssh-askpass`.
+- **2026-09-30** — Made the SSH askpass dialog **dark**. `openssh-askpass` installs the GTK3
+  `gnome-ssh-askpass`, which (like deadd) renders in light Adwaita under i3. Added
+  `bin/ssh-askpass-dark`, a wrapper that runs it with `GTK_THEME=Adwaita:dark` (scoped to the
+  dialog, not exported session-wide), and pointed `SSH_ASKPASS` at the wrapper in
+  `dotfiles/bashrc.d/ssh-askpass.sh`. shellcheck clean; verified the dialog now matches the
+  dark session.

@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+#
+# ssh-askpass-dark -- gnome-ssh-askpass forced to the dark GTK theme.
+#
+# gnome-ssh-askpass (the GUI passphrase dialog from the openssh-askpass package)
+# is a GTK3 app that, like deadd, doesn't pick up the dark preference under i3 --
+# so it renders in light Adwaita against the otherwise-dark session. GTK_THEME=
+# Adwaita:dark forces it dark. It's set here, scoped to just this dialog, rather
+# than exported session-wide, so it doesn't restyle every GTK app run from a
+# terminal. SSH_ASKPASS points at this wrapper (see dotfiles/bashrc.d/ssh-askpass.sh).
+#
+# See "SSH agent / passphrase caching" in i3-setup.md.
+exec env GTK_THEME=Adwaita:dark /usr/libexec/openssh/ssh-askpass "$@"
