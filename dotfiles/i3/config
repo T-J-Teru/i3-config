@@ -88,6 +88,11 @@ bindsym XF86MonBrightnessDown exec --no-startup-id i3-osd brightness-down
 # unfocused window (or the mouse ending up under a new window) won't steal focus.
 focus_follows_mouse no
 
+# Don't resize windows by dragging their border with plain left-click -- avoids
+# accidental resizes when clicking near an edge. ($mod+button1 / button3 still
+# resize; --exclude-titlebar keeps the title bar clickable as normal.)
+bindsym --border --exclude-titlebar button1 nop
+
 # Use Mouse+$mod to drag floating windows to their wanted position
 floating_modifier $mod
 
