@@ -198,6 +198,49 @@ saver `mode: random` drawing from `~/Pictures/Wallpapers/digitalblasphemy/` for 
 image-based savers. Re-tune any time with `xscreensaver-settings`; it rewrites the same
 file in place (now the symlink target), so the change lands in the repo — just commit it.
 
+## SSH agent / passphrase caching
+
+**Symptom this fixes:** `git push` (and any `ssh`) over an SSH key with a passphrase
+prompted for that passphrase *every time* — in the terminal — instead of a GUI box once
+per session like the old machine.
+
+**What was already right:** a single `ssh-agent` runs for the whole login session. Fedora's
+`/etc/X11/xinit/xinitrc-common` wraps the X session in `ssh-agent` (you can see it as the
+parent of i3: `ssh-agent … -c "i3"`), and `SSH_AUTH_SOCK` is exported. So the agent that
+should hold unlocked keys exists and lives as long as the session does.
+
+**Why it still re-prompted:** two pieces were missing.
+
+1. **The agent was never given the key.** By default `ssh` unlocks a key for one connection
+   and discards it — it does *not* hand it to the agent. The fix is **`AddKeysToAgent yes`**
+   in the `Host *` block of `~/.ssh/config`: after the first passphrase-unlock the key is
+   stored in the session agent, so nothing that session re-prompts. It's on-demand per key
+   (there are ~13 keys here), so each is cached the first time it's actually used. This is
+   the core fix. *`~/.ssh/config` is deliberately NOT version-controlled — it lists internal
+   hostnames/IPs — so this line is a live edit only (a timestamped `~/.ssh/config.bak.*` was
+   made before editing).*
+
+2. **The prompt was a terminal prompt, not a GUI box.** No askpass helper was installed and
+   `SSH_ASKPASS_REQUIRE` was unset. Installing **`openssh-askpass`** provides the GTK dialog
+   at `/usr/libexec/openssh/ssh-askpass` (the path `ssh` looks for), and
+   **`SSH_ASKPASS_REQUIRE=prefer`** tells `ssh` to use that GUI helper *even when it has a
+   controlling terminal* (the default only uses it when there's no tty, which is why a push
+   from a terminal would otherwise still prompt inline). Both env vars are set in
+   `dotfiles/bashrc.d/ssh-askpass.sh`.
+
+**Where the env vars live.** Fedora's stock `~/.bashrc` sources every file in `~/.bashrc.d/`,
+so the setting is a repo-tracked drop-in — `dotfiles/bashrc.d/ssh-askpass.sh`, symlinked to
+`~/.bashrc.d/ssh-askpass.sh` by `install.sh` (globbed, like `bin/*`) — with no edit to
+`~/.bashrc` itself. This is the repo's first `~/.bashrc.d/` entry. Because `git push` runs in
+an interactive shell, `.bashrc.d` is guaranteed to have applied; a fresh terminal picks it up
+(existing terminals need `source ~/.bashrc.d/ssh-askpass.sh` or a new window).
+
+**Net result:** first `git push` of a session → GUI passphrase box → key cached in the agent
+→ no further prompts until logout. Confirm what the agent holds with `ssh-add -l`.
+
+**Requires:** `sudo dnf install openssh-askpass` (in `install.sh`'s package list; run
+`./install.sh` or install it directly).
+
 ## Terminal (Ptyxis)
 
 Fedora 44 Workstation no longer ships `gnome-terminal` by default; its default terminal
@@ -1258,3 +1301,14 @@ just toggles `pactl set-source-mute` directly.
   live file into the repo as `dotfiles/xscreensaver/xscreensaver` and symlinked it back; added the
   link to `install.sh`. This is the repo's first home-root dotfile (outside `~/.config`), so it
   gets its own explicit `link` line rather than being globbed. Closes the last open follow-up.
+- **2026-09-30** — Fixed **SSH passphrase re-prompting**: `git push` asked for the key
+  passphrase in the terminal every time instead of a GUI box once per session. The session
+  ssh-agent (Fedora wraps the X session in `ssh-agent`) was fine but empty — added
+  **`AddKeysToAgent yes`** to `~/.ssh/config`'s `Host *` block so a key is cached after its first
+  unlock (live edit only; `~/.ssh/config` stays out of the repo as it lists internal hosts —
+  backed up to `~/.ssh/config.bak.*` first). For the GUI box, added **`openssh-askpass`** to
+  `install.sh` and a new repo drop-in **`dotfiles/bashrc.d/ssh-askpass.sh`** (symlinked into
+  `~/.bashrc.d/`, the repo's first such entry) exporting `SSH_ASKPASS` +
+  `SSH_ASKPASS_REQUIRE=prefer` so `ssh` uses the dialog even from a terminal. New section
+  "SSH agent / passphrase caching". shellcheck clean; verified `AddKeysToAgent` resolves
+  (`ssh -G`) and the env vars load in a fresh shell. Needs `sudo dnf install openssh-askpass`.
