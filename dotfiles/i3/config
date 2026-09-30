@@ -214,7 +214,7 @@ bindsym $mod+a focus parent
 # restart doesn't stack duplicates; the `while` loop respawns qalc if you quit it, so
 # the window stays available. urxvt is used (not Ptyxis) because it can set a matchable
 # WM_CLASS instance and run a command. See "Scratchpad (qalc calculator)" in i3-setup.md.
-exec --no-startup-id urxvt -name calc-scratch -title "Calculator (qalc)" -fn "xft:monospace:size=12" -fg "#e0e0e0" -bg "#1c1c1c" -b 10 -e sh -c 'while true; do qalc; done'
+exec --no-startup-id urxvt -name calc-scratch -title "Calculator (qalc)" -fn "xft:monospace:size=12" -fg "#e0e0e0" -bg "#1c1c1c" -b 10 -e sh -c 'while true; do qalc --set "autocalc on"; done'
 # First-map rules, matched on the WM_CLASS instance (urxvt -name), not the title: float
 # it, size/centre it, and stash it so it starts hidden until summoned.
 for_window [instance="calc-scratch"] floating enable, resize set 760 480, move position center, move scratchpad

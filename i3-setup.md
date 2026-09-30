@@ -600,7 +600,7 @@ How it's wired in the i3 config:
 ```
 exec --no-startup-id urxvt -name calc-scratch -title "Calculator (qalc)" \
      -fn "xft:monospace:size=12" -fg "#e0e0e0" -bg "#1c1c1c" -b 10 \
-     -e sh -c 'while true; do qalc; done'
+     -e sh -c 'while true; do qalc --set "autocalc on"; done'
 for_window [instance="calc-scratch"] floating enable, resize set 760 480, move position center, move scratchpad
 bindsym $mod+c [instance="calc-scratch"] scratchpad show
 ```
@@ -611,9 +611,13 @@ bindsym $mod+c [instance="calc-scratch"] scratchpad show
   inline flags give it a readable dark look without needing an `~/.Xresources`.
 - **`exec`, not `exec_always`:** it spawns once at login, so an in-place i3 restart
   (`$mod+Shift+r`) doesn't stack duplicate calculators; the existing window is preserved.
-- **`while true; do qalc; done`:** if you quit qalc (Ctrl-D / `quit`) the loop relaunches it,
-  so the scratchpad window is always ready — the same trick the old R setup used. (Caveat: if
-  you `$mod+Shift+q` the *window* itself, it's gone until the next login.)
+- **`while true; do qalc --set "autocalc on"; done`:** if you quit qalc (Ctrl-D / `quit`) the
+  loop relaunches it, so the scratchpad window is always ready — the same trick the old R setup
+  used. (Caveat: if you `$mod+Shift+q` the *window* itself, it's gone until the next login.)
+- **`--set "autocalc on"`:** on a fresh config qalc otherwise asks an interactive first-run
+  question about the "autocalc" feature (continuously show the result as you type) every time
+  the scratchpad launches. Passing `--set "autocalc on"` both answers it (enabled — what we
+  want) and skips the prompt, so the calculator comes up ready to type into.
 - **`for_window [instance="calc-scratch"]`:** on first map, float it, size and centre it, and
   drop it into the scratchpad so it starts hidden. Matched on instance, not title (a title can
   change; the instance won't).
