@@ -135,14 +135,14 @@ bindsym $mod+Shift+Return exec --no-startup-id rofi -modi windowcd -show windowc
 # --- Custom workspace modi ------------------------------------------------------------
 # These call helper scripts in ~/bin (already on PATH). See "rofi" section of i3-setup.md.
 
-# Move focused container to a chosen workspace (i3-move-container.sh: bash, no deps).
-bindsym $mod+Shift+equal exec --no-startup-id rofi -show-icons -theme arthur -modi "Move container to workspace:i3-move-container.sh" -show 'Move container to workspace'
+# Move focused container to a chosen workspace (i3-move-container: bash, no deps).
+bindsym $mod+Shift+equal exec --no-startup-id rofi -show-icons -theme arthur -modi "Move container to workspace:i3-move-container" -show 'Move container to workspace'
 
-# Move current workspace to a chosen output (i3-move-workspace.py: needs python3-i3ipc).
-bindsym $mod+Shift+minus exec --no-startup-id rofi -show-icons -theme arthur -modi "Move workspace to output:i3-move-workspace.py" -show 'Move workspace to output'
+# Move current workspace to a chosen output (i3-move-workspace: needs python3-i3ipc).
+bindsym $mod+Shift+minus exec --no-startup-id rofi -show-icons -theme arthur -modi "Move workspace to output:i3-move-workspace" -show 'Move workspace to output'
 
-# Switch to a workspace (i3-switch-workspace.sh: bash, no deps).
-bindsym $mod+equal exec --no-startup-id rofi -show-icons -theme arthur -modi "Workspaces:i3-switch-workspace.sh" -show Workspaces
+# Switch to a workspace (i3-switch-workspace: bash, no deps).
+bindsym $mod+equal exec --no-startup-id rofi -show-icons -theme arthur -modi "Workspaces:i3-switch-workspace" -show Workspaces
 
 # Rename the current workspace (i3-rename-workspace: Perl; uses rofi theme arthur-entry).
 # Modernized to core Getopt::Long + Pod::Usage (custom GiveHelp module retired).
@@ -151,8 +151,8 @@ bindsym $mod+Shift+question exec --no-startup-id i3-rename-workspace
 # -------------------------------------------------------------------------------------
 
 # --- Other helper-script bindings -----------------------------------------------------
-# Cycle focus through active outputs/monitors (i3-toggle-selected-output.py: python3-i3ipc).
-bindsym $mod+Tab exec --no-startup-id i3-toggle-selected-output.py
+# Cycle focus through active outputs/monitors (i3-toggle-selected-output: python3-i3ipc).
+bindsym $mod+Tab exec --no-startup-id i3-toggle-selected-output
 
 # Fuzzy-find a PDF under ~/Documents and open it (i3-pdf-select: rofi + papers).
 bindsym $mod+Shift+p exec --no-startup-id i3-pdf-select

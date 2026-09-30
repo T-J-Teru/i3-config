@@ -543,18 +543,18 @@ present in the running i3's environment, so no PATH edit or re-login was needed)
 
 | Binding            | Purpose                          | Script                    | Status |
 | ------------------ | -------------------------------- | ------------------------- | ------ |
-| `$mod+equal`       | Switch to a workspace            | `i3-switch-workspace.sh`  | ✅ working (bash, no deps) |
-| `$mod+Shift+equal` | Move focused container to a ws   | `i3-move-container.sh`    | ✅ working (bash, no deps) |
-| `$mod+Shift+minus` | Move workspace to another output | `i3-move-workspace.py`    | ✅ working (`python3-i3ipc` installed) |
+| `$mod+equal`       | Switch to a workspace            | `i3-switch-workspace`  | ✅ working (bash, no deps) |
+| `$mod+Shift+equal` | Move focused container to a ws   | `i3-move-container`    | ✅ working (bash, no deps) |
+| `$mod+Shift+minus` | Move workspace to another output | `i3-move-workspace`    | ✅ working (`python3-i3ipc` installed) |
 
 Notes:
 
-- `i3-move-workspace.py` imports the `i3ipc` Python library, provided by
+- `i3-move-workspace` imports the `i3ipc` Python library, provided by
   `python3-i3ipc` (v2.2.1, Fedora repo) — **installed**. Its shebang is
   `#! /bin/env python3` (works; `/bin` is usr-merged to `/usr/bin`).
 - The switch-workspace script was originally `i3_switch_workspaces.sh` (underscores), so
   a `cp i3-*` glob had skipped it. It was later copied and **renamed** to
-  `i3-switch-workspace.sh` (hyphens) for consistency; the binding uses the new name.
+  `i3-switch-workspace` (hyphens) for consistency; the binding uses the new name.
 - `$mod+Shift+question` → `i3-rename-workspace` (Perl) — **working.** Requirements:
     - Perl modules `perl-indirect`, `perl-JSON-Parse`, `perl-Carp-Assert` (Fedora repo)
       — `sudo dnf install -y perl-indirect perl-JSON-Parse perl-Carp-Assert`.
@@ -587,8 +587,8 @@ back into the home directory, and `install.sh` records the package list. `~/lib`
 `i3-rename-workspace` was modernized to core Perl.
 
 Other i3 helper scripts also found in `~/bin` (not all wired to bindings yet):
-`i3-fix-workspace-placement.py`, `i3-pdf-select`, `i3-setup-keyboard`,
-`i3-toggle-selected-output.py`, `i3-rename-workspace`.
+`i3-fix-workspace-placement`, `i3-pdf-select`, `i3-setup-keyboard`,
+`i3-toggle-selected-output`, `i3-rename-workspace`.
 
 ## Other helper-script bindings
 
@@ -596,7 +596,7 @@ Additional bindings from the old setup, backed by scripts in `bin/`:
 
 | Binding        | Script                          | Purpose                              | Status |
 | -------------- | ------------------------------- | ------------------------------------ | ------ |
-| `$mod+Tab`     | `i3-toggle-selected-output.py`  | Cycle focus through active outputs    | ✅ working (`python3-i3ipc`) |
+| `$mod+Tab`     | `i3-toggle-selected-output`  | Cycle focus through active outputs    | ✅ working (`python3-i3ipc`) |
 | `$mod+Shift+p` | `i3-pdf-select`                 | Fuzzy-find a PDF under `~/Documents` and open it | ✅ working (rofi + `papers`) |
 
 Notes / fixes applied:
@@ -605,7 +605,7 @@ Notes / fixes applied:
   `${HOME}/Documents/`. It called **`evince`**, which Fedora 44 replaced with **`papers`**
   (evince's successor) → switched to `papers` (added to `install.sh`). Uses the built-in
   rofi `arthur` theme in dmenu mode.
-- **`i3-toggle-selected-output.py`**: uses `python3-i3ipc` (already installed); shebang
+- **`i3-toggle-selected-output`**: uses `python3-i3ipc` (already installed); shebang
   `#! /bin/env python3` works. No changes needed.
 - **`i3-toggl-select`** (Toggl time-tracker switcher): **dropped.** It depended on a
   `toggl` CLI not packaged in dnf plus a configured Toggl account, and is no longer used.
@@ -813,16 +813,16 @@ loaded` otherwise).
 Preference: workspaces numbered 20-29 should live on the external monitor. `autorandr` runs a
 global `postswitch` hook after every switch and exposes the activated profile in
 `$AUTORANDR_CURRENT_PROFILE`. The hook (version-controlled at `dotfiles/autorandr/postswitch`,
-symlinked to `~/.config/autorandr/postswitch`) runs `i3-fix-workspace-placement.py` only for
+symlinked to `~/.config/autorandr/postswitch`) runs `i3-fix-workspace-placement` only for
 the `home` profile:
 
 ```sh
 case "$AUTORANDR_CURRENT_PROFILE" in
-    home) i3-fix-workspace-placement.py ;;
+    home) i3-fix-workspace-placement ;;
 esac
 ```
 
-`i3-fix-workspace-placement.py` (uses `python3-i3ipc`) moves every existing workspace numbered
+`i3-fix-workspace-placement` (uses `python3-i3ipc`) moves every existing workspace numbered
 20-29 to the external output, then restores focus. It is a no-op unless **both** expected
 outputs are active, so it is safe to run any time.
 
@@ -831,7 +831,7 @@ outputs are active, so it is safe to run any time.
 - **Output names are machine-specific.** On this laptop: laptop = `eDP-1`, external = `DP-2-3`
   (the old machine used `DP-3`). Both are set near the top of the script; check names with
   `i3-msg -t get_outputs` and update them on a new machine.
-- You can still run `i3-fix-workspace-placement.py` by hand at any time.
+- You can still run `i3-fix-workspace-placement` by hand at any time.
 
 ### Pinning the numbered workspaces to the laptop
 
@@ -1227,3 +1227,11 @@ just toggles `pactl set-source-mute` directly.
   left on. Those XFCE tools aren't on this machine and it was never wired into the i3 config; if
   the need returns it's easier to rewrite fresh than to carry it. Deleted the script and its
   `~/bin` symlink, and dropped it from the helper-scripts list.
+- **2026-09-30** — Dropped the `.sh`/`.py` **suffixes** from the five remaining suffixed helper
+  scripts, so every `~/bin/i3-*` is invoked by a bare name (the interpreter is the script's
+  business, not the caller's): `i3-fix-workspace-placement`, `i3-move-container`,
+  `i3-move-workspace`, `i3-switch-workspace`, `i3-toggle-selected-output`. `git mv`'d them, and
+  updated every reference — the i3 config bindings/rofi modi, the autorandr `postswitch` hook,
+  an `install.sh` comment, and the current-state doc sections. Refreshed the `~/bin` symlinks
+  (removing the now-stale suffixed ones). Verified: i3 config validates, all five resolve on
+  PATH, no dangling symlinks, and the workspace-listing scripts still work.

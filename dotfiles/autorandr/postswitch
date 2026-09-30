@@ -6,7 +6,7 @@
 # profile name in $AUTORANDR_CURRENT_PROFILE, so we scope actions to a profile.
 #
 # For the "home" profile (laptop + external monitor), re-home the 20-29
-# workspaces onto the external monitor via i3-fix-workspace-placement.py.
+# workspaces onto the external monitor via i3-fix-workspace-placement.
 # That script is itself a no-op unless both expected outputs are active, so
 # this is safe even if it runs in an unexpected state.
 #
@@ -16,7 +16,7 @@
 
 case "$AUTORANDR_CURRENT_PROFILE" in
     home)
-        i3-fix-workspace-placement.py
+        i3-fix-workspace-placement
         ;;
 esac
 

@@ -67,7 +67,7 @@ PACKAGES=(
   # Perl modules used by i3-rename-workspace.
   perl-indirect perl-JSON-Parse perl-Carp-Assert
 
-  # Python module used by i3-move-workspace.py.
+  # Python module used by i3-move-workspace.
   python3-i3ipc
 )
 
