@@ -276,6 +276,41 @@ The actions go through systemd-logind (`systemctl suspend|reboot|poweroff`, `i3-
 menu labels carry Font Awesome glyphs generated with `printf '\uXXXX'`; pango falls back to the
 FA font per-glyph, so they render even though the rofi `arthur` theme's font isn't FA.
 
+## Compositor (picom)
+
+i3 has no compositor of its own, so without one there's no translucency, shadows or
+rounded corners, and RGBA window areas render as solid black. picom fills that gap —
+most visibly it makes the deadd notification cards (below) read as frosted-glass
+panels instead of black rectangles, but it lifts the whole desktop (soft drop
+shadows, rounded corners).
+
+**Install:**
+
+```bash
+sudo dnf install -y picom
+```
+
+**File:** `~/.config/picom/picom.conf` (tracked as `dotfiles/picom/picom.conf`,
+symlinked by `install.sh`).
+
+**Autostart:** from the i3 config —
+
+```
+exec_always --no-startup-id "pkill -x picom; sleep 0.5; exec picom --config $HOME/.config/picom/picom.conf"
+```
+
+picom has no `--replace`, and `exec_always` re-runs on every i3 restart, so the line
+kills any running instance first to avoid stacking a second compositor (each would
+fight over drawing and you'd get flicker).
+
+**What's configured:** `glx` backend with `vsync` (needed for smooth blur/shadow on
+the Intel iGPU); drop shadows (excluded on docks so polybar stays flat); 12px rounded
+corners (matching the deadd card radius; docks excluded); `dual_kawase` blur behind
+translucent windows; short fade-in/out. `detect-client-opacity` honours app-set
+opacity. GTK client-side-decoration shadow regions are excluded via the
+`_GTK_FRAME_EXTENTS@` selector (note: the older `@:c` type-suffix form is deprecated
+in current picom).
+
 ## Launcher / window switching (rofi)
 
 rofi (Fedora repo) replaces dmenu as the launcher and adds window/workspace switchers.
@@ -576,8 +611,6 @@ emit with `xev` (they may produce different keysyms) and adjust the bindings.
 ## Follow-ups / ideas
 
 - Version-control `~/.xscreensaver` once locking preferences are tuned.
-- Consider `picom` (compositor), a nicer bar (e.g. `polybar`), and `rofi` in place of
-  dmenu, if desired later.
 
 ---
 
@@ -729,3 +762,10 @@ emit with `xev` (they may produce different keysyms) and adjust the bindings.
 - **2026-09-29** — Added a **power menu**: `bin/i3-power-menu` (rofi: Lock/Logout/Suspend/Reboot/
   Shutdown via systemd-logind, no sudo). Reachable from a new polybar power glyph (`custom/text`,
   click-left) and the `$mod+Escape` keybinding. New doc section "Power menu (i3-power-menu)".
+- **2026-09-30** — Added a **compositor (picom)** so translucency/shadows/rounded corners work
+  under i3 (without one, RGBA areas render black). Config `dotfiles/picom/picom.conf` (glx backend,
+  drop shadows, 12px rounded corners, `dual_kawase` blur, short fades; docks excluded). Autostarted
+  from the i3 config with a `pkill -x picom` guard so `exec_always` doesn't stack instances on
+  restart. Added `picom` to install.sh + symlink and a new "Compositor (picom)" doc section. Primary
+  motivation: make the (in-progress) deadd notification cards render as frosted-glass panels. Fixed
+  a deprecated `_GTK_FRAME_EXTENTS@:c` → `_GTK_FRAME_EXTENTS@` selector.

@@ -31,6 +31,10 @@ PACKAGES=(
   # Status bar (replaces i3bar/i3status). See "Status bar (polybar)" in i3-setup.md.
   polybar
 
+  # Compositor: translucency, drop shadows, frosted-glass blur, rounded corners
+  # (most visibly the deadd notification cards). See "Compositor (picom)" in i3-setup.md.
+  picom
+
   # Glyph icon font for the polybar status modules (backlight, volume, battery, etc.).
   # Font Awesome 6 Free (Solid). Nerd Fonts aren't packaged in Fedora repos.
   fontawesome-6-free-fonts
@@ -92,6 +96,9 @@ create_symlinks() {
   # polybar config + per-monitor launch script
   link "$REPO/dotfiles/polybar/config.ini" "$HOME/.config/polybar/config.ini"
   link "$REPO/dotfiles/polybar/launch.sh" "$HOME/.config/polybar/launch.sh"
+
+  # picom compositor config
+  link "$REPO/dotfiles/picom/picom.conf" "$HOME/.config/picom/picom.conf"
 
   # Desktop-entry overrides (add search keywords etc.). ~/.local/share/applications
   # takes precedence over /usr/share/applications.

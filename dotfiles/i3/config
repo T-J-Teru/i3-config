@@ -31,6 +31,13 @@ exec --no-startup-id dex-autostart --autostart --environment i3
 # them per machine. See "Monitor layout" in i3-setup.md.
 exec_always --no-startup-id autorandr --change
 
+# Compositor: picom provides translucency, soft drop shadows, frosted-glass blur
+# and rounded corners (most visibly the deadd notification cards). picom has no
+# --replace, so kill any running instance first to avoid stacking a second one on
+# i3 restart. Config at ~/.config/picom/picom.conf. See "Compositor (picom)" in
+# i3-setup.md.
+exec_always --no-startup-id "pkill -x picom; sleep 0.5; exec picom --config $HOME/.config/picom/picom.conf"
+
 # nm-applet and pactl (below) are a popular choice. Modify as you see fit.
 
 # Screen saver + locking via xscreensaver (chosen over i3lock; see i3-setup.md).
