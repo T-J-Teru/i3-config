@@ -338,6 +338,16 @@ opacity. GTK client-side-decoration shadow regions are excluded via the
 `_GTK_FRAME_EXTENTS@` selector (note: the older `@:c` type-suffix form is deprecated
 in current picom).
 
+**Dim inactive windows.** `inactive-dim = 0.5` fades every non-focused window to half
+brightness so the active one is easy to spot (measured: a window drops to exactly 0.50×
+its focused brightness). This replaces the old machine's separate `window-dimmer` script,
+which ran a second compositor purely for compton's `--inactive-dim`; now it just folds
+into the one picom we already run. `focus-exclude` lists windows that are never dimmed:
+docks (polybar), the desktop/wallpaper, `notification` windows and the deadd center
+(so pop-ups stay bright), `rofi`, i3 frame decorations, xscreensaver, and unnamed
+transient helpers. The dock/notification/deadd excludes are new here (the old machine
+had neither polybar nor deadd); the rest port the old script's `--focus-exclude` rules.
+
 ## Notifications (deadd)
 
 i3 ships no notification daemon, so out of the box `notify-send` fails with
@@ -998,3 +1008,9 @@ just toggles `pactl set-source-mute` directly.
   Added a second commit to the deadd fork that also calls `windowResize` in
   `setNotificationCenterPosition`, forcing a resize on every show. Rebuilt and reinstalled the
   binary; verified the center now resizes correctly on both monitors in either open order.
+- **2026-09-30** — Ported the old machine's **inactive-window dimming** into picom. Added
+  `inactive-dim = 0.5` plus a `focus-exclude` list (docks, desktop, notifications, deadd center,
+  rofi, i3 frames, xscreensaver, unnamed transients) so non-focused windows dim to half brightness
+  while polybar and deadd pop-ups stay bright. Replaces the old standalone `window-dimmer` script
+  (which ran a second compositor for compton's `--inactive-dim`); now folded into the running picom.
+  Verified: focused→unfocused brightness ratio measured exactly 0.50; polybar/popups unaffected.
