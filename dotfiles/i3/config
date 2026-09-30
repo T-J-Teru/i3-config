@@ -44,7 +44,11 @@ exec_always --no-startup-id "pkill -x picom; sleep 0.5; exec picom --config $HOM
 # ~/bin -- see "Notifications (deadd)" in i3-setup.md. Guarded like picom so an i3
 # restart doesn't leave two daemons fighting over the D-Bus name (the process name
 # truncates to 15 chars, hence `pkill -x deadd-notificat`).
-exec_always --no-startup-id "pkill -x deadd-notificat; sleep 0.5; exec deadd-notification-center"
+# GTK_THEME=Adwaita:dark: deadd doesn't honour GNOME's prefer-dark portal setting,
+# so under the plain (light) Adwaita theme it renders symbolic notification icons
+# (the volume/brightness OSD sun/speaker) in a muted dark grey. Forcing the dark
+# theme flips those to bright near-white; full-colour app icons are unaffected.
+exec_always --no-startup-id "pkill -x deadd-notificat; sleep 0.5; exec env GTK_THEME=Adwaita:dark deadd-notification-center"
 
 # nm-applet and pactl (below) are a popular choice. Modify as you see fit.
 

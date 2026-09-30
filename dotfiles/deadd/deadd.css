@@ -160,6 +160,13 @@ button.deadd-noti-center.noti-center.userbutton:hover,
 }
 
 /* ---- Icons / images -------------------------------------------------------- */
+/* Symbolic (monochrome) icons -- e.g. the volume/brightness OSD sun/speaker --
+   render in the GTK theme's foreground colour, NOT this CSS `color` (deadd loads
+   them via imageSetFromIconName, which ignores CSS recolouring). Under the plain
+   (light) Adwaita theme they come out dark grey and look muted on the dark card,
+   so deadd is launched with GTK_THEME=Adwaita:dark in the i3 autostart -- that
+   flips symbolic icons to a bright near-white. Full-colour app icons (Firefox
+   etc.) are unaffected either way. See "Notifications (deadd)" in i3-setup.md. */
 image.deadd-noti-center.notification.icon,
 image.deadd-noti-center.in-center.icon {
     margin-right: 10px;

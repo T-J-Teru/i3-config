@@ -379,8 +379,18 @@ Autostart is from the i3 config, guarded like picom so an i3 restart doesn't lea
 daemons fighting over the D-Bus name:
 
 ```
-exec_always --no-startup-id "pkill -x deadd-notificat; sleep 0.5; exec deadd-notification-center"
+exec_always --no-startup-id "pkill -x deadd-notificat; sleep 0.5; exec env GTK_THEME=Adwaita:dark deadd-notification-center"
 ```
+
+`GTK_THEME=Adwaita:dark` is deliberate: deadd doesn't honour GNOME's `prefer-dark`
+portal preference, so under the plain (light) Adwaita theme it renders **symbolic
+(monochrome) notification icons** — most visibly the volume/brightness OSD sun and
+speaker — in the light theme's dark-grey foreground, which reads as muted on the dark
+card. Symbolic icons are recoloured from the GTK theme's foreground, *not* from CSS
+(deadd loads them via `imageSetFromIconName`, which ignores CSS `color`), so the fix
+lives in the launch environment rather than `deadd.css`. Forcing the dark theme flips
+them to a bright near-white; full-colour app icons (Firefox etc.) render vividly either
+way and are unaffected.
 
 ### Configuration & theme
 
@@ -389,7 +399,8 @@ deadd resolves its config dir via `getXdgDirectory XdgConfig ""`, i.e. it reads
 (appearance). Both are version-controlled here under `dotfiles/deadd/` and symlinked
 into place. The CSS is a dark theme matching the polybar palette (translucent cards,
 rounded corners, a red critical-urgency variant, and a large clock in the center);
-the translucency/blur only looks right with picom running.
+the translucency/blur only looks right with picom running. Note symbolic icon
+brightness is *not* a CSS setting — see `GTK_THEME` in the autostart above.
 
 ## Launcher / window switching (rofi)
 
@@ -905,3 +916,9 @@ just toggles `pactl set-source-mute` directly.
   unmutes on adjust; mic-mute left as a plain toggle (no level to show). Replaced the old direct
   `pactl`/`brightnessctl` bindings and dropped the now-unused `$refresh_i3status` (leftover from
   i3status; polybar self-updates). New "Volume / brightness OSD" doc section.
+- **2026-09-30** — Brightened deadd's **symbolic notification icons** (the OSD sun/speaker looked
+  muted grey). Root cause: deadd ignores GNOME's `prefer-dark` preference and, under the light
+  Adwaita theme, renders symbolic icons in a dark-grey foreground; CSS `color` has no effect because
+  deadd loads icons via `imageSetFromIconName`. Fixed by launching deadd with `GTK_THEME=Adwaita:dark`
+  in the autostart, which flips symbolic icons to bright near-white (full-colour app icons unaffected).
+  Documented the mechanism in the deadd section and added a note in `deadd.css`.
