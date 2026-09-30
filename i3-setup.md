@@ -599,7 +599,7 @@ How it's wired in the i3 config:
 
 ```
 exec --no-startup-id urxvt -name calc-scratch -title "Calculator (qalc)" \
-     -fn "xft:monospace:size=12" -fg "#e0e0e0" -bg "#1c1c1c" -b 10 \
+     -fn "xft:monospace:size=12" -fg "#e0e0e0" -bg "#1c1c1c" -b 10 +sb \
      -e sh -c 'while true; do qalc --set "autocalc on"; done'
 for_window [instance="calc-scratch"] floating enable, resize set 760 480, move position center, move scratchpad
 bindsym $mod+c [instance="calc-scratch"] scratchpad show
@@ -608,7 +608,8 @@ bindsym $mod+c [instance="calc-scratch"] scratchpad show
 - **Terminal:** `urxvt` (rxvt-unicode), not Ptyxis. A scratchpad has to be matched by a stable
   window identity; urxvt sets a custom WM_CLASS **instance** with `-name calc-scratch` and can
   run a command with `-e`, whereas single-instance GTK4 Ptyxis can't cleanly do either. The
-  inline flags give it a readable dark look without needing an `~/.Xresources`.
+  inline flags give it a readable dark look without needing an `~/.Xresources`; `+sb` hides the
+  scrollbar (there's no scrollback worth keeping in a calculator).
 - **`exec`, not `exec_always`:** it spawns once at login, so an in-place i3 restart
   (`$mod+Shift+r`) doesn't stack duplicate calculators; the existing window is preserved.
 - **`while true; do qalc --set "autocalc on"; done`:** if you quit qalc (Ctrl-D / `quit`) the
