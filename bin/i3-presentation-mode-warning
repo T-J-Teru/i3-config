@@ -21,7 +21,7 @@ do
     if echo "$line" | grep -q UNBLANK; then
         state=$(${XFCONF_QUERY} -c xfce4-power-manager \
                                 -p /xfce4-power-manager/presentation-mode)
-        if [ "x$state" = xtrue ]; then
+        if [ "$state" = true ]; then
             sleep "${MSG_DELAY}"
             notify-send "${MSG_TITLE}" "${MSG_BODY}"
         fi

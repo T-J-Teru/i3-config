@@ -1216,3 +1216,10 @@ just toggles `pactl set-source-mute` directly.
   `$mod+Escape` / polybar-glyph path gets the same zenity confirmation on the destructive actions
   as the `$mod+Shift+e` System mode. Each menu entry now calls `i3-exit <action>` instead of
   invoking `systemctl`/`i3-msg` directly. Both power paths now behave identically.
+- **2026-09-30** — Ran **shellcheck** over every shell script and fixed all findings (mostly in
+  the older ported scripts): quoted `$@`→`"$*"` in the `[ ]` tests and workspace assignments of
+  `i3-move-container.sh` / `i3-switch-workspace.sh` (SC2068/SC2198/SC2124); in `i3-pdf-select`,
+  switched backticks to `$(...)`, quoted the `find` path, and split `[ p -a q ]` into
+  `[ p ] && [ q ]` (SC2006/SC2086/SC2166); dropped the obsolete `x`-prefix comparison in
+  `i3-presentation-mode-warning` (SC2268). All behavior-preserving; the workspace-listing scripts
+  reverified. shellcheck now passes clean on all shell scripts.

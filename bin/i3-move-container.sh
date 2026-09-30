@@ -5,14 +5,14 @@ function gen_workspaces()
     i3-msg -t get_workspaces | tr ',' '\n' | grep "name" | sed 's/"name":"\(.*\)"/\1/g' | sort -n
 }
 
-if [ -z $@ ]
+if [ -z "$*" ]
 then
 
     # echo empty; gen_workspaces
     gen_workspaces
 
 else
-    WORKSPACE=$@
+    WORKSPACE="$*"
 
     # if [ x"empty" = x"${WORKSPACE}" ]
     # then

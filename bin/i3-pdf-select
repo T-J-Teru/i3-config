@@ -3,13 +3,13 @@
 docroot=${HOME}/Documents/
 rofibin=rofi
 
-pdfname=`find ${docroot} -name "*.pdf" \
+pdfname=$(find "${docroot}" -name "*.pdf" \
      | sed -e "s,${docroot},," \
-     | ${rofibin} -p "filename: " --only-match -dmenu -i -theme arthur`
+     | ${rofibin} -p "filename: " --only-match -dmenu -i -theme arthur)
 
 fullname="${docroot}${pdfname}"
 
-if [ -n "${pdfname}" -a -e "${fullname}" ]
+if [ -n "${pdfname}" ] && [ -e "${fullname}" ]
 then
         exec papers "${fullname}"
 fi
