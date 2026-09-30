@@ -16,7 +16,8 @@ set -euo pipefail
 
 action="${1:-}"
 sink="@DEFAULT_SINK@"
-step=5                                   # percent per key-press
+step="${2:-5}"                           # percent per key-press (2nd arg; default 5,
+                                         # pass 1 for fine control -- see Shift+ binds)
 idfile="${XDG_RUNTIME_DIR:-/tmp}/i3-osd.id"
 
 # show TITLE ICON PERCENT -- fire/replace the single OSD notification.
@@ -63,7 +64,7 @@ case "$action" in
     brightnessctl -q set "${step}%-"
     ;;
   *)
-    echo "usage: i3-osd {volume-up|volume-down|volume-mute|brightness-up|brightness-down}" >&2
+    echo "usage: i3-osd {volume-up|volume-down|volume-mute|brightness-up|brightness-down} [step%]" >&2
     exit 2
     ;;
 esac

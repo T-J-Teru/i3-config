@@ -75,6 +75,9 @@ exec --no-startup-id nm-applet
 bindsym XF86AudioRaiseVolume exec --no-startup-id i3-osd volume-up
 bindsym XF86AudioLowerVolume exec --no-startup-id i3-osd volume-down
 bindsym XF86AudioMute exec --no-startup-id i3-osd volume-mute
+# Hold Shift for fine (1%) volume steps instead of the default 5%.
+bindsym Shift+XF86AudioRaiseVolume exec --no-startup-id i3-osd volume-up 1
+bindsym Shift+XF86AudioLowerVolume exec --no-startup-id i3-osd volume-down 1
 # Mic mute has no OSD (no meaningful level to show); toggle it directly.
 bindsym XF86AudioMicMute exec --no-startup-id pactl set-source-mute @DEFAULT_SOURCE@ toggle
 
@@ -83,6 +86,9 @@ bindsym XF86AudioMicMute exec --no-startup-id pactl set-source-mute @DEFAULT_SOU
 # "Display brightness" / "Volume / brightness OSD" in i3-setup.md.
 bindsym XF86MonBrightnessUp exec --no-startup-id i3-osd brightness-up
 bindsym XF86MonBrightnessDown exec --no-startup-id i3-osd brightness-down
+# Hold Shift for fine (1%) brightness steps instead of the default 5%.
+bindsym Shift+XF86MonBrightnessUp exec --no-startup-id i3-osd brightness-up 1
+bindsym Shift+XF86MonBrightnessDown exec --no-startup-id i3-osd brightness-down 1
 
 # Focus only follows keyboard/clicks, not the pointer: moving the mouse over an
 # unfocused window (or the mouse ending up under a new window) won't steal focus.

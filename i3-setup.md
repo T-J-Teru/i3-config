@@ -772,6 +772,17 @@ bindsym XF86MonBrightnessUp   exec --no-startup-id i3-osd brightness-up
 bindsym XF86MonBrightnessDown exec --no-startup-id i3-osd brightness-down
 ```
 
+**Fine control.** The step size is `i3-osd`'s optional second argument (default 5%). The
+config binds the **`Shift+`** variants of the raise/lower keys to a 1% step for both
+volume and brightness, for precise adjustment:
+
+```
+bindsym Shift+XF86AudioRaiseVolume   exec --no-startup-id i3-osd volume-up 1
+bindsym Shift+XF86AudioLowerVolume   exec --no-startup-id i3-osd volume-down 1
+bindsym Shift+XF86MonBrightnessUp    exec --no-startup-id i3-osd brightness-up 1
+bindsym Shift+XF86MonBrightnessDown  exec --no-startup-id i3-osd brightness-down 1
+```
+
 `i3-osd` first performs the change (`pactl` for volume — capped at 100%, unmutes on
 raise/lower; `brightnessctl` for backlight), then reads back the resulting level and
 fires the notification. How it behaves like a real OSD:
@@ -1014,3 +1025,7 @@ just toggles `pactl set-source-mute` directly.
   while polybar and deadd pop-ups stay bright. Replaces the old standalone `window-dimmer` script
   (which ran a second compositor for compton's `--inactive-dim`); now folded into the running picom.
   Verified: focused→unfocused brightness ratio measured exactly 0.50; polybar/popups unaffected.
+- **2026-09-30** — Added **fine (1%) volume & brightness control**. `i3-osd` now takes an optional
+  step as its second argument (default 5%); bound the `Shift+` variants of the volume and brightness
+  raise/lower keys to a 1% step. Ports the old machine's fine-volume keys and extends the same idea
+  to brightness. Verified ±1% vs the default ±5%.
