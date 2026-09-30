@@ -674,11 +674,12 @@ brightness keys. brightnessctl talks to systemd-logind (and ships a udev fallbac
 **no root** to change the backlight in the active session. It drives the one backlight device
 here, `intel_backlight` (`/sys/class/backlight/`).
 
-i3 bindings (see the config):
+The brightness keys are bound via the **`i3-osd`** helper, which changes the brightness *and*
+shows an on-screen display (see "Volume / brightness OSD" below):
 
 ```
-bindsym XF86MonBrightnessUp   exec --no-startup-id brightnessctl set 5%+
-bindsym XF86MonBrightnessDown exec --no-startup-id brightnessctl set 5%-
+bindsym XF86MonBrightnessUp   exec --no-startup-id i3-osd brightness-up
+bindsym XF86MonBrightnessDown exec --no-startup-id i3-osd brightness-down
 ```
 
 Handy CLI: `brightnessctl` (show current), `brightnessctl set 50%`, `set 5%+`, `set 5%-`.
@@ -688,12 +689,45 @@ driver typically does not expose, so it tends to fail on this hardware; brightne
 sysfs/logind path instead. If the `XF86MonBrightness*` keys don't trigger, check what your keys
 emit with `xev` (they may produce different keysyms) and adjust the bindings.
 
+## Volume / brightness OSD
+
+Pressing the volume or brightness keys pops up an **on-screen display** — a deadd
+notification with a **progress bar** — instead of silently changing the level. It's
+driven by `~/bin/i3-osd` (tracked as `bin/i3-osd`, symlinked by `install.sh`), bound to
+the `XF86Audio*` / `XF86MonBrightness*` keys in the i3 config:
+
+```
+bindsym XF86AudioRaiseVolume  exec --no-startup-id i3-osd volume-up
+bindsym XF86AudioLowerVolume  exec --no-startup-id i3-osd volume-down
+bindsym XF86AudioMute         exec --no-startup-id i3-osd volume-mute
+bindsym XF86MonBrightnessUp   exec --no-startup-id i3-osd brightness-up
+bindsym XF86MonBrightnessDown exec --no-startup-id i3-osd brightness-down
+```
+
+`i3-osd` first performs the change (`pactl` for volume — capped at 100%, unmutes on
+raise/lower; `brightnessctl` for backlight), then reads back the resulting level and
+fires the notification. How it behaves like a real OSD:
+
+- **One popup that updates in place.** `notify-send -p` prints the id deadd assigns; the
+  script stashes it (in `$XDG_RUNTIME_DIR/i3-osd.id`) and passes it back with `-r` next
+  time, so deadd *replaces* the previous notification rather than stacking a stream of
+  them. Volume and brightness share the one id, so only ever one OSD is on screen.
+- **Progress bar.** `-h int:value:<pct>` — deadd renders the `value` hint as a
+  percentage bar (it also accepts `has-percentage`).
+- **No history clutter.** `-h boolean:transient:true` marks them transient, so they show
+  as pop-ups but don't accumulate in the notification center.
+- **Clean look.** `-a ""` (empty app-name) drops the "notify-send" label; each OSD shows
+  just an icon (speaker level / muted / sun), a title, the percentage, and the bar. Short
+  `-t 1500` timeout.
+
+Mic-mute (`XF86AudioMicMute`) has no OSD — there's no meaningful level to show — so it
+just toggles `pactl set-source-mute` directly.
+
 ## Follow-ups / ideas
 
 - Version-control `~/.xscreensaver` once locking preferences are tuned.
 - Now that deadd is running, add click-to-details actions on polybar (e.g. clicking the
-  battery glyph fires a `notify-send` with charge/time-remaining), and a brightness/volume
-  OSD via deadd.
+  battery glyph fires a `notify-send` with charge / time-remaining).
 
 ---
 
@@ -863,3 +897,11 @@ emit with `xev` (they may produce different keysyms) and adjust the bindings.
   isn't present). Autostart added to the i3 config (`exec_always` with a `pkill -x deadd-notificat`
   guard, like picom). Config/theme (`dotfiles/deadd/deadd.{yml,css}`) symlinked into
   `~/.config/deadd/` by `install.sh`.
+- **2026-09-30** — Added a **volume/brightness OSD** (`bin/i3-osd`): the `XF86Audio*` and
+  `XF86MonBrightness*` keys now change the level *and* show a deadd notification with a progress
+  bar. Repeated presses update one popup in place (capture the id via `notify-send -p`, replay it
+  with `-r`; id stashed in `$XDG_RUNTIME_DIR`), the bar comes from the `value` hint, `transient`
+  keeps them out of the center, and `-a ""` drops the app-name label. Volume capped at 100% and
+  unmutes on adjust; mic-mute left as a plain toggle (no level to show). Replaced the old direct
+  `pactl`/`brightnessctl` bindings and dropped the now-unused `$refresh_i3status` (leftover from
+  i3status; polybar self-updates). New "Volume / brightness OSD" doc section.

@@ -65,17 +65,20 @@ bindsym $mod+Escape exec --no-startup-id i3-power-menu
 # and nm-applet is a desktop environment-independent system tray GUI for it.
 exec --no-startup-id nm-applet
 
-# Use pactl to adjust volume in PulseAudio.
-set $refresh_i3status killall -SIGUSR1 i3status
-bindsym XF86AudioRaiseVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ +10% && $refresh_i3status
-bindsym XF86AudioLowerVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ -10% && $refresh_i3status
-bindsym XF86AudioMute exec --no-startup-id pactl set-sink-mute @DEFAULT_SINK@ toggle && $refresh_i3status
-bindsym XF86AudioMicMute exec --no-startup-id pactl set-source-mute @DEFAULT_SOURCE@ toggle && $refresh_i3status
+# Volume: i3-osd adjusts the volume AND shows a deadd on-screen display (a progress
+# bar that updates in place on repeated presses). See "Volume / brightness OSD" in
+# i3-setup.md. (polybar's pulseaudio module updates itself, so no i3status refresh.)
+bindsym XF86AudioRaiseVolume exec --no-startup-id i3-osd volume-up
+bindsym XF86AudioLowerVolume exec --no-startup-id i3-osd volume-down
+bindsym XF86AudioMute exec --no-startup-id i3-osd volume-mute
+# Mic mute has no OSD (no meaningful level to show); toggle it directly.
+bindsym XF86AudioMicMute exec --no-startup-id pactl set-source-mute @DEFAULT_SOURCE@ toggle
 
 # Display backlight brightness via brightnessctl (works through systemd-logind, no root).
-# Bound to the laptop's brightness keys. See "Display brightness" in i3-setup.md.
-bindsym XF86MonBrightnessUp exec --no-startup-id brightnessctl set 5%+
-bindsym XF86MonBrightnessDown exec --no-startup-id brightnessctl set 5%-
+# i3-osd changes the brightness AND shows the same deadd OSD bar as volume. See
+# "Display brightness" / "Volume / brightness OSD" in i3-setup.md.
+bindsym XF86MonBrightnessUp exec --no-startup-id i3-osd brightness-up
+bindsym XF86MonBrightnessDown exec --no-startup-id i3-osd brightness-down
 
 # Use Mouse+$mod to drag floating windows to their wanted position
 floating_modifier $mod

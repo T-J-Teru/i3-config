@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+#
+# i3-osd -- on-screen display for volume & brightness, via deadd notifications.
+#
+# Performs the requested volume/brightness change, then shows (or UPDATES) a single
+# notification carrying a progress bar. Repeated key-presses reuse one notification
+# instead of stacking a stream of them: we pass notify-send -p to capture the id the
+# server assigns, stash it, and pass it back with -r next time (deadd replaces the
+# matching notification). The bar comes from the `value` int hint (deadd renders it as
+# a percentage bar); `transient` keeps these out of the notification-center history.
+#
+# Bound to the XF86 media keys in the i3 config. See "Volume / brightness OSD" in
+# i3-setup.md.
+
+set -euo pipefail
+
+action="${1:-}"
+sink="@DEFAULT_SINK@"
+step=5                                   # percent per key-press
+idfile="${XDG_RUNTIME_DIR:-/tmp}/i3-osd.id"
+
+# show TITLE ICON PERCENT -- fire/replace the single OSD notification.
+show() {
+  local title="$1" icon="$2" pct="$3" rid newid
+  rid="$(cat "$idfile" 2>/dev/null || echo 0)"
+  newid="$(notify-send -a "" -p -r "$rid" -t 1500 \
+             -h "int:value:$pct" \
+             -h "boolean:transient:true" \
+             -i "$icon" "$title" "${pct}%")"
+  printf '%s' "$newid" > "$idfile"
+}
+
+vol_pct()  { pactl get-sink-volume "$sink" | grep -oP '\d+(?=%)' | head -1; }
+is_muted() { [[ "$(pactl get-sink-mute "$sink")" == *yes* ]]; }
+
+vol_icon() {
+  local p="$1"
+  if   (( p <= 0 ));  then echo audio-volume-muted
+  elif (( p <= 33 )); then echo audio-volume-low
+  elif (( p <= 66 )); then echo audio-volume-medium
+  else                     echo audio-volume-high
+  fi
+}
+
+case "$action" in
+  volume-up)
+    pactl set-sink-mute "$sink" 0
+    pactl set-sink-volume "$sink" "+${step}%"
+    # Cap at 100% so we don't push into (distorting) software boost.
+    if (( "$(vol_pct)" > 100 )); then pactl set-sink-volume "$sink" 100%; fi
+    ;;
+  volume-down)
+    pactl set-sink-mute "$sink" 0
+    pactl set-sink-volume "$sink" "-${step}%"
+    ;;
+  volume-mute)
+    pactl set-sink-mute "$sink" toggle
+    ;;
+  brightness-up)
+    brightnessctl -q set "${step}%+"
+    ;;
+  brightness-down)
+    brightnessctl -q set "${step}%-"
+    ;;
+  *)
+    echo "usage: i3-osd {volume-up|volume-down|volume-mute|brightness-up|brightness-down}" >&2
+    exit 2
+    ;;
+esac
+
+case "$action" in
+  volume-*)
+    if is_muted; then
+      show "Volume muted" "audio-volume-muted" 0
+    else
+      p="$(vol_pct)"
+      show "Volume" "$(vol_icon "$p")" "$p"
+    fi
+    ;;
+  brightness-*)
+    # brightnessctl -m: "device,class,current,PCT%,max" -- field 4 is the percentage.
+    p="$(brightnessctl -m | cut -d, -f4 | tr -d '%')"
+    show "Brightness" "display-brightness-symbolic" "$p"
+    ;;
+esac
