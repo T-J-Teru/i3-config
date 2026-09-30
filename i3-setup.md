@@ -251,13 +251,17 @@ bar/main` and overrides only `modules-right` to omit `notifications` and `power`
 gated by the `TRAY_POSITION` env var (`right` on primary, `none` elsewhere).
 
 **Click-to-details.** The bar only has room for a glyph + one number per module, so the
-`cpu`, `memory` and `battery` modules are left-clickable: clicking one fires a deadd
-notification with the fuller breakdown — CPU shows load averages + top processes by CPU,
-memory shows usage + top processes by RAM, battery shows charge/state/draw and time-remaining.
+`cpu`, `memory`, `battery`, `wlan` and `fs` modules are left-clickable: clicking one fires a
+deadd notification with the fuller breakdown — CPU shows load averages + top processes by CPU,
+memory shows usage + top processes by RAM, battery shows charge/state/draw and time-remaining,
+Wi-Fi shows SSID/signal/rate/IP, and disk shows per-mount usage for every local filesystem.
 The helper is `~/bin/polybar-detail` (tracked as `bin/polybar-detail`, auto-symlinked by
 `install.sh`); it reuses one popup on repeated clicks (`notify-send -p`/`-r`, id stashed in
 `$XDG_RUNTIME_DIR`) and marks them `transient` so they stay out of the notification-center
-history. It needs `upower` (battery) plus the standard `nproc`/`free`/`ps`.
+history. It needs `upower` (battery) and `nmcli`/NetworkManager (Wi-Fi) plus the standard
+`nproc`/`free`/`ps`/`df`. The Wi-Fi case discovers the wireless interface itself (first NIC with
+a `wireless/` dir under `/sys/class/net`), so it stays machine-independent even though the
+`[module/wlan]` bar entry hardcodes `wlp0s20f3`.
 
 Two implementation notes worth knowing:
 - The click is wired with a **`%{A1:polybar-detail <what>:}<label>%{A}` action tag** in the
@@ -950,8 +954,6 @@ just toggles `pactl set-source-mute` directly.
 ## Follow-ups / ideas
 
 - Version-control `~/.xscreensaver` once locking preferences are tuned.
-- Extend `polybar-detail` to more modules if useful (e.g. wifi → IP/SSID/signal, disk →
-  per-mount usage).
 
 ---
 
@@ -1235,3 +1237,11 @@ just toggles `pactl set-source-mute` directly.
   an `install.sh` comment, and the current-state doc sections. Refreshed the `~/bin` symlinks
   (removing the now-stale suffixed ones). Verified: i3 config validates, all five resolve on
   PATH, no dangling symlinks, and the workspace-listing scripts still work.
+- **2026-09-30** — Extended **`polybar-detail`** click-to-details to the **Wi-Fi (`wlan`)** and
+  **disk (`fs`)** modules. Clicking Wi-Fi now pops SSID / signal % / negotiated rate / IPv4
+  address (via `nmcli`; the wireless interface is auto-discovered from `/sys/class/net/*/wireless`
+  so the script stays machine-independent); clicking disk pops per-mount usage for every local
+  filesystem (`df -h -l`, pseudo/virtual mounts filtered out). Wired the click regions with the
+  same `%{A1:polybar-detail <what>:}<label>%{A}` action tag used by cpu/memory/battery — for
+  `wlan` in `format-connected`/`format-disconnected`, for `fs` in `format-mounted`. shellcheck
+  clean; both bars reload without config errors; verified the live SSID/IP and df output.

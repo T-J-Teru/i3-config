@@ -2,10 +2,11 @@
 #
 # polybar-detail -- on-click detail popups for polybar status modules.
 #
-# The bar shows a compact glyph + number per module (CPU %, RAM %, battery %).
-# Clicking a glyph runs this script, which fires a deadd notification with the
-# fuller breakdown that doesn't fit in the bar (load averages + top processes,
-# memory usage + top consumers, battery charge/time-remaining/draw). Wired via
+# The bar shows a compact glyph + number per module (CPU %, RAM %, battery %,
+# Wi-Fi, disk). Clicking a glyph runs this script, which fires a deadd
+# notification with the fuller breakdown that doesn't fit in the bar (load
+# averages + top processes, memory usage + top consumers, battery
+# charge/time-remaining/draw, Wi-Fi SSID/signal/IP, per-mount disk usage). Wired via
 # `click-left = polybar-detail <what>` in dotfiles/polybar/config.ini -- the same
 # click-action mechanism the power glyph uses.
 #
@@ -67,8 +68,49 @@ case "$what" in
     notify "Battery" "$body" battery-symbolic
     ;;
 
+  wlan)
+    # Wireless interface, discovered rather than hardcoded (machine-independent):
+    # the first NIC with a wireless/ dir under /sys/class/net.
+    iface=""
+    for d in /sys/class/net/*/wireless; do
+      [[ -e "$d" ]] || continue
+      iface="$(basename "$(dirname "$d")")"
+      break
+    done
+    if [[ -z "$iface" ]]; then
+      notify "Wi-Fi" "No wireless interface found." network-wireless-symbolic
+      exit 0
+    fi
+    # Active access point from NetworkManager: SSID, signal %, negotiated rate.
+    # nmcli -t is colon-separated; the active row starts with "yes".
+    ap="$(nmcli -t -f active,ssid,signal,rate dev wifi 2>/dev/null \
+            | awk -F: '$1=="yes" {print; exit}')"
+    if [[ -n "$ap" ]]; then
+      ssid="$(cut -d: -f2 <<< "$ap")"
+      signal="$(cut -d: -f3 <<< "$ap")"
+      rate="$(cut -d: -f4 <<< "$ap")"
+      # IPv4 address on the interface (first one; "IP4.ADDRESS[1]:1.2.3.4/24").
+      ip4="$(nmcli -t -f IP4.ADDRESS device show "$iface" 2>/dev/null \
+               | head -1 | cut -d: -f2)"
+      body="$(printf 'SSID: %s\nSignal: %s%%\nRate: %s\nIP: %s  (%s)' \
+                "$ssid" "$signal" "$rate" "${ip4:-none}" "$iface")"
+    else
+      body="$(printf 'Not connected.  (%s)' "$iface")"
+    fi
+    notify "Wi-Fi" "$body" network-wireless-symbolic
+    ;;
+
+  fs)
+    # Per-mount usage for local, real filesystems (skip pseudo/virtual mounts).
+    rows="$(df -h -l -x tmpfs -x devtmpfs -x efivarfs -x overlay \
+               --output=target,used,size,pcent 2>/dev/null \
+              | tail -n +2 \
+              | awk '{printf "  %-14s %5s / %-5s  %s\n", $1, $2, $3, $4}')"
+    notify "Disk" "$rows" drive-harddisk-symbolic
+    ;;
+
   *)
-    echo "usage: polybar-detail {cpu|memory|battery}" >&2
+    echo "usage: polybar-detail {cpu|memory|battery|wlan|fs}" >&2
     exit 2
     ;;
 esac
