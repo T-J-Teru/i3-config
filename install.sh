@@ -123,6 +123,11 @@ create_symlinks() {
     link "$f" "$HOME/.local/share/applications/$(basename "$f")"
   done
 
+  # xscreensaver preferences (~/.xscreensaver, a home-root dotfile -- NOT under
+  # ~/.config). Written by xscreensaver-settings; version-controlled so lock/idle
+  # timeouts and the saver list survive a reinstall. See "Screen locking" in i3-setup.md.
+  link "$REPO/dotfiles/xscreensaver/xscreensaver" "$HOME/.xscreensaver"
+
   # autorandr global hooks (e.g. postswitch: re-home workspaces for the 'home'
   # profile). The per-profile dirs under ~/.config/autorandr/<name> are EDID-keyed
   # and machine-specific, so we keep hooks at the top level instead.

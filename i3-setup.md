@@ -186,8 +186,17 @@ bindsym $mod+Shift+x exec --no-startup-id xscreensaver-command -lock
   `xscreensaver-settings` (GUI) — it writes `~/.xscreensaver`.
 - **Suspend locking is handled automatically:** xscreensaver 6.x spawns
   `xscreensaver-systemd`, which locks before suspend/hibernate via logind. This is why
-  `xss-lock` was not needed. (`~/.xscreensaver` is not yet version-controlled — a
-  possible future addition once tuned.)
+  `xss-lock` was not needed.
+
+**`~/.xscreensaver` is version-controlled.** It's a home-root dotfile (not under
+`~/.config`), tracked as `dotfiles/xscreensaver/xscreensaver` and symlinked to
+`~/.xscreensaver` by `install.sh` — the first home-root dotfile the repo manages, so its
+link line stands on its own rather than being globbed like `bin/*` or the `.desktop`
+overrides. Current settings of note: 10-minute idle timeout, lock enabled (0-second lock
+grace after blank), fade in/out, DPMS left to GNOME/system (`dpmsEnabled: False`), and the
+saver `mode: random` drawing from `~/Pictures/Wallpapers/digitalblasphemy/` for the
+image-based savers. Re-tune any time with `xscreensaver-settings`; it rewrites the same
+file in place (now the symlink target), so the change lands in the repo — just commit it.
 
 ## Terminal (Ptyxis)
 
@@ -953,7 +962,7 @@ just toggles `pactl set-source-mute` directly.
 
 ## Follow-ups / ideas
 
-- Version-control `~/.xscreensaver` once locking preferences are tuned.
+- _(none open)_
 
 ---
 
@@ -1245,3 +1254,7 @@ just toggles `pactl set-source-mute` directly.
   same `%{A1:polybar-detail <what>:}<label>%{A}` action tag used by cpu/memory/battery — for
   `wlan` in `format-connected`/`format-disconnected`, for `fs` in `format-mounted`. shellcheck
   clean; both bars reload without config errors; verified the live SSID/IP and df output.
+- **2026-09-30** — **Version-controlled `~/.xscreensaver`** (locking prefs now tuned). Moved the
+  live file into the repo as `dotfiles/xscreensaver/xscreensaver` and symlinked it back; added the
+  link to `install.sh`. This is the repo's first home-root dotfile (outside `~/.config`), so it
+  gets its own explicit `link` line rather than being globbed. Closes the last open follow-up.
