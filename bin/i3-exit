@@ -22,6 +22,7 @@ logout() {
 # option ("No") is the default/highlighted button.
 confirm() {
     zenity --question \
+           --title="Confirmation required" \
            --text="Really $1?" \
            --cancel-label="Yes" \
            --ok-label="No"
