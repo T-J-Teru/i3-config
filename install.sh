@@ -179,6 +179,21 @@ configure_timezone() {
 }
 
 #-----------------------------------------------------------------------------#
+# 6. Disable the PC-speaker beep
+#-----------------------------------------------------------------------------#
+
+# Silence the motherboard PC-speaker beep by blacklisting the pcspkr kernel
+# module system-wide (see dotfiles/modprobe.d/nobeep.conf for the why). This is
+# a real /etc file (not a repo symlink -- /etc/modprobe.d is root-owned), so copy
+# it in with sudo, then unload the module now so the beep stops without a reboot.
+disable_pcspkr_beep() {
+  echo ">> Disabling PC-speaker beep (blacklist pcspkr, sudo)..."
+  sudo install -m 644 "$REPO/dotfiles/modprobe.d/nobeep.conf" /etc/modprobe.d/nobeep.conf
+  # Unload now if loaded (harmless if it isn't); the blacklist keeps it off at boot.
+  sudo modprobe -r pcspkr 2>/dev/null || true
+}
+
+#-----------------------------------------------------------------------------#
 # main
 #-----------------------------------------------------------------------------#
 
@@ -187,6 +202,7 @@ main() {
     install_packages
     configure_keyboard
     configure_timezone
+    disable_pcspkr_beep
   fi
   create_symlinks
   install_deadd_binary

@@ -602,6 +602,28 @@ tick — no restart needed. Location-specific, not i3-specific: change the zone 
 used elsewhere (`timedatectl list-timezones` lists the options; `timedatectl status` shows the
 current one).
 
+## Silencing the PC-speaker beep
+
+The motherboard PC speaker emits a loud hardware "beep" on bell events (readline
+tab-completion, a shell error, etc.). The old machine masked it with a per-session `xset -b`
+in the i3 autostart, but that only disables the *X server's* bell and must re-run every login.
+The definitive fix is to blacklist the **`pcspkr`** kernel module that drives the speaker,
+which silences it system-wide (X *and* the TTY/console) permanently:
+
+```bash
+# dotfiles/modprobe.d/nobeep.conf, installed to /etc/modprobe.d/nobeep.conf
+blacklist pcspkr
+blacklist snd_pcsp
+install pcspkr /bin/true
+install snd_pcsp /bin/true
+```
+
+`install.sh` applies this (`disable_pcspkr_beep`): it copies the file in with sudo (it's a
+root-owned `/etc` file, not a repo symlink) and runs `sudo modprobe -r pcspkr` so the beep
+stops immediately without a reboot; the blacklist keeps it off at every boot thereafter.
+`snd_pcsp` (the ALSA equivalent) isn't loaded on this machine but is blacklisted for good
+measure. Verify with `lsmod | grep pcspkr` (should print nothing).
+
 ## Monitor layout (arandr + autorandr)
 
 GNOME has its own Settings → Displays panel, but that only affects the Wayland session;
@@ -1053,3 +1075,10 @@ just toggles `pactl set-source-mute` directly.
   keyword instead of a hardcoded `eDP-1` to stay machine-independent. Ports the old machine's
   workspace-to-output pinning. Verified a fresh numbered workspace opens on the laptop even when the
   external monitor has focus.
+- **2026-09-30** — **Silenced the PC-speaker beep** at the source by blacklisting the `pcspkr`
+  kernel module (`dotfiles/modprobe.d/nobeep.conf` → `/etc/modprobe.d/nobeep.conf`: `blacklist` +
+  `install … /bin/true` for `pcspkr` and `snd_pcsp`). This kills the beep system-wide (X *and* the
+  TTY) permanently, unlike the old machine's per-session `xset -b`. `install.sh` gained
+  `disable_pcspkr_beep` (sudo-copies the file, then `modprobe -r pcspkr` so it stops without a
+  reboot). Verified `pcspkr` unloaded and the file installed root-owned. New "Silencing the
+  PC-speaker beep" doc section.
