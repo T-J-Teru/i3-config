@@ -587,6 +587,51 @@ Notes / fixes applied:
   `toggl` CLI not packaged in dnf plus a configured Toggl account, and is no longer used.
   Binding, script (`bin/i3-toggl-select`), and its `~/bin` symlink were removed.
 
+## Scratchpad (qalc calculator)
+
+The old machine kept a calculator "always a keystroke away" as an i3 **scratchpad**: a small
+floating terminal running the R REPL, toggled with `$mod+c`. This ports that idea to
+[`qalc`](https://qalculate.github.io/) (Qalculate! CLI) — a friendly calculator that takes
+natural input (`50% of 300`, `2^10`, `sqrt(2)`, `20 miles to km`, `100 usd to gbp`) — since
+the old R loop was overkill for quick sums.
+
+How it's wired in the i3 config:
+
+```
+exec --no-startup-id urxvt -name calc-scratch -title "Calculator (qalc)" \
+     -fn "xft:monospace:size=12" -fg "#e0e0e0" -bg "#1c1c1c" -b 10 \
+     -e sh -c 'while true; do qalc; done'
+for_window [instance="calc-scratch"] floating enable, resize set 760 480, move position center, move scratchpad
+bindsym $mod+c [instance="calc-scratch"] scratchpad show
+```
+
+- **Terminal:** `urxvt` (rxvt-unicode), not Ptyxis. A scratchpad has to be matched by a stable
+  window identity; urxvt sets a custom WM_CLASS **instance** with `-name calc-scratch` and can
+  run a command with `-e`, whereas single-instance GTK4 Ptyxis can't cleanly do either. The
+  inline flags give it a readable dark look without needing an `~/.Xresources`.
+- **`exec`, not `exec_always`:** it spawns once at login, so an in-place i3 restart
+  (`$mod+Shift+r`) doesn't stack duplicate calculators; the existing window is preserved.
+- **`while true; do qalc; done`:** if you quit qalc (Ctrl-D / `quit`) the loop relaunches it,
+  so the scratchpad window is always ready — the same trick the old R setup used. (Caveat: if
+  you `$mod+Shift+q` the *window* itself, it's gone until the next login.)
+- **`for_window [instance="calc-scratch"]`:** on first map, float it, size and centre it, and
+  drop it into the scratchpad so it starts hidden. Matched on instance, not title (a title can
+  change; the instance won't).
+- **`$mod+c`** shows the calculator if hidden and hides it if showing — a true toggle.
+
+There are also two **generic scratchpad** bindings for stashing any window:
+
+```
+bindsym $mod+Shift+grave move scratchpad   # stash the focused window
+bindsym $mod+grave scratchpad show         # show / cycle stashed windows
+```
+
+The backtick pair was chosen because i3's usual `$mod+minus` / `$mod+Shift+minus` scratchpad
+keys are already taken here by the rofi workspace modi. `$mod+grave` cycles through *all*
+scratchpad windows (the calculator included); `$mod+c` targets only the calculator.
+
+`qalc` (package `qalculate`) and `urxvt` (`rxvt-unicode`) are installed by `install.sh`.
+
 ## Keyboard: Caps Lock as Ctrl
 
 Preference: Caps Lock should act as an extra Ctrl key (`ctrl:nocaps`).
@@ -1119,3 +1164,13 @@ just toggles `pactl set-source-mute` directly.
   covers it. Wired via `exec_always` (re-rolls on i3 start/restart) and the autorandr
   `postswitch` hook (repaints per-monitor on dock/undock). Added `feh` to `install.sh`. Ports
   the old machine's feh/`.fehbg` mechanism. New "Desktop wallpaper (feh)" doc section.
+- **2026-09-30** — Added a **calculator scratchpad**, porting the old machine's "calculator a
+  keystroke away" (which ran R). A small floating `urxvt` running `qalc` (Qalculate! CLI) lives
+  in i3's scratchpad, toggled with `$mod+c`. Uses urxvt (not Ptyxis) so it can set a matchable
+  WM_CLASS instance (`-name calc-scratch`) and run a command; `exec` (once at login, no restart
+  duplicates) with a `while true; do qalc; done` respawn loop; `for_window` floats/sizes/centres
+  it and stashes it hidden. Added generic scratchpad bindings on the backtick pair
+  (`$mod+grave` show/cycle, `$mod+Shift+grave` stash) since the usual minus keys are taken by the
+  rofi modi. Added `qalculate` + `rxvt-unicode` to `install.sh`. New "Scratchpad (qalc
+  calculator)" doc section. Verified: qalc computes and the window floats, centres, and stashes
+  in the scratchpad.

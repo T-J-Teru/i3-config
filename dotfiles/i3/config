@@ -208,6 +208,24 @@ bindsym $mod+a focus parent
 # focus the child container
 #bindsym $mod+d focus child
 
+# --- Scratchpad ---------------------------------------------------------------------
+# A calculator always a keystroke away: a small floating urxvt running qalc, kept in
+# i3's scratchpad. `exec` (not exec_always) spawns it once at login, so an in-place
+# restart doesn't stack duplicates; the `while` loop respawns qalc if you quit it, so
+# the window stays available. urxvt is used (not Ptyxis) because it can set a matchable
+# WM_CLASS instance and run a command. See "Scratchpad (qalc calculator)" in i3-setup.md.
+exec --no-startup-id urxvt -name calc-scratch -title "Calculator (qalc)" -fn "xft:monospace:size=12" -fg "#e0e0e0" -bg "#1c1c1c" -b 10 -e sh -c 'while true; do qalc; done'
+# First-map rules, matched on the WM_CLASS instance (urxvt -name), not the title: float
+# it, size/centre it, and stash it so it starts hidden until summoned.
+for_window [instance="calc-scratch"] floating enable, resize set 760 480, move position center, move scratchpad
+# Toggle just the calculator (show if hidden / hide if showing).
+bindsym $mod+c [instance="calc-scratch"] scratchpad show
+
+# Generic scratchpad: stash the focused window, and show/cycle the stashed windows.
+bindsym $mod+Shift+grave move scratchpad
+bindsym $mod+grave scratchpad show
+# ------------------------------------------------------------------------------------
+
 # Define names for default workspaces for which we configure key bindings later on.
 # We use variables to avoid repeating the names in multiple places.
 set $ws1 "1"

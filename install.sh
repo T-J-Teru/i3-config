@@ -42,6 +42,10 @@ PACKAGES=(
   # Launcher / window & workspace switcher.
   rofi
 
+  # Calculator scratchpad: qalc (Qalculate! CLI) runs inside a urxvt terminal that
+  # i3 keeps in its scratchpad. See "Scratchpad (qalc calculator)" in i3-setup.md.
+  qalculate rxvt-unicode
+
   # Graphical monitor-layout tool (arandr) + automatic layout profiles (autorandr).
   # arandr pulls in xrandr as a dependency. See "Monitor layout" in i3-setup.md.
   arandr autorandr
