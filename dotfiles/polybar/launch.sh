@@ -13,12 +13,14 @@ done
 
 primary="$(xrandr --query | awk '/ connected primary/ {print $1}')"
 
-# One bar per connected monitor. Only the primary carries the system tray.
+# One bar per connected monitor. The primary carries the system tray and uses the
+# `main` bar (which includes the power glyph); other outputs use the `secondary`
+# bar, which is identical minus the power glyph.
 for m in $(polybar --list-monitors | cut -d: -f1); do
     if [ "$m" = "$primary" ]; then
-        TRAY_POSITION=right
+        TRAY_POSITION=right bar=main
     else
-        TRAY_POSITION=none
+        TRAY_POSITION=none bar=secondary
     fi
-    MONITOR="$m" TRAY_POSITION="$TRAY_POSITION" polybar --reload main >>"/tmp/polybar-$m.log" 2>&1 &
+    MONITOR="$m" TRAY_POSITION="$TRAY_POSITION" polybar --reload "$bar" >>"/tmp/polybar-$m.log" 2>&1 &
 done

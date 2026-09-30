@@ -230,15 +230,23 @@ aren't packaged in Fedora's repos, so Font Awesome 6 Free (Solid) is the reliabl
 **Files** (version-controlled under `dotfiles/polybar/`, symlinked by `install.sh`):
 
 - `~/.config/polybar/config.ini` — the bar definition and modules.
-- `~/.config/polybar/launch.sh` — starts **one bar per connected monitor**, with the system
-  tray only on the primary output. Launched from the i3 config via
+- `~/.config/polybar/launch.sh` — starts **one bar per connected monitor**. The primary output
+  gets the `main` bar (system tray + power glyph); every other output gets the `secondary` bar,
+  which is identical minus the tray and the power glyph. Launched from the i3 config via
   `exec_always --no-startup-id $HOME/.config/polybar/launch.sh`, so it re-runs on i3 restart and
   can be re-run any time to respawn the bars.
 
 **Modules configured:** i3 workspaces (left) and, on the right: backlight, volume (pulseaudio),
-disk usage, memory, cpu, wifi, battery, clock, a **power** glyph, plus the tray. (No window-title
-module.) The power glyph is a `custom/text` module whose `click-left` runs `i3-power-menu` (see
-"Power menu" below).
+disk usage, memory, cpu, wifi, battery, clock, and — **on the primary display only** — a
+**power** glyph, plus the tray. (No window-title module.) The power glyph is a `custom/text`
+module whose `click-left` runs `i3-power-menu` (see "Power menu" below).
+
+**Primary-only power glyph / tray.** polybar can't conditionally drop a module from a single
+bar's `modules-*` list (an `${env:...}` placeholder there is read as a literal module name, not
+interpolated), so the difference is expressed as two bars: `[bar/secondary]` uses `inherit =
+bar/main` and overrides only `modules-right` to omit `power`. `launch.sh` runs `polybar main` on
+the primary output and `polybar secondary` on the rest. The tray is separate — gated by the
+`TRAY_POSITION` env var (`right` on primary, `none` elsewhere).
 
 **Click-to-details.** The bar only has room for a glyph + one number per module, so the
 `cpu`, `memory` and `battery` modules are left-clickable: clicking one fires a deadd
@@ -947,3 +955,9 @@ just toggles `pactl set-source-mute` directly.
   than a module-level `click-left`, which (verified) doesn't fire on internal modules in polybar
   3.7.2. Raised deadd's `max-lines-in-body` 4 → 10 so the ~8-line breakdowns aren't truncated. New
   "Click-to-details" note in the polybar section.
+- **2026-09-30** — Restricted the polybar **power glyph** (lock/suspend/logout menu) and the system
+  tray to the **primary (laptop) display** only. polybar can't conditionally include a module via
+  an env var in a `modules-*` list (it reads `${env:...}` there literally), so the difference is a
+  separate `[bar/secondary]` that `inherit`s `bar/main` and overrides `modules-right` to drop
+  `power`. `launch.sh` runs `polybar main` on the primary output and `polybar secondary` elsewhere.
+  Verified: primary bar loads 10 modules (power + tray), secondary loads 9 (ends at the clock).
