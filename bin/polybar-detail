@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+#
+# polybar-detail -- on-click detail popups for polybar status modules.
+#
+# The bar shows a compact glyph + number per module (CPU %, RAM %, battery %).
+# Clicking a glyph runs this script, which fires a deadd notification with the
+# fuller breakdown that doesn't fit in the bar (load averages + top processes,
+# memory usage + top consumers, battery charge/time-remaining/draw). Wired via
+# `click-left = polybar-detail <what>` in dotfiles/polybar/config.ini -- the same
+# click-action mechanism the power glyph uses.
+#
+# Repeated clicks reuse ONE popup instead of stacking (capture the id notify-send
+# assigns with -p, stash it, replay with -r next time -- deadd then replaces it),
+# and `transient` keeps them out of the notification-center history.
+#
+# See "Status bar (polybar)" in i3-setup.md.
+
+set -euo pipefail
+
+what="${1:-}"
+idfile="${XDG_RUNTIME_DIR:-/tmp}/polybar-detail.id"
+
+# notify TITLE BODY ICON -- fire/replace the single detail popup.
+notify() {
+  local title="$1" body="$2" icon="$3" rid newid
+  rid="$(cat "$idfile" 2>/dev/null || echo 0)"
+  newid="$(notify-send -a "" -p -r "$rid" -t 6000 \
+             -h "boolean:transient:true" \
+             -i "$icon" "$title" "$body")"
+  printf '%s' "$newid" > "$idfile"
+}
+
+case "$what" in
+  cpu)
+    read -r l1 l5 l15 _ < /proc/loadavg
+    cores="$(nproc)"
+    # Top 5 by CPU%. pcpu is instantaneous-since-boot avg, but good enough to spot a hog.
+    procs="$(ps -eo pcpu=,comm= --sort=-pcpu | head -5 \
+               | awk '{printf "  %5s%%  %s\n", $1, $2}')"
+    body="$(printf 'Load: %s  %s  %s   (%s cores)\n\nTop by CPU:\n%s' \
+              "$l1" "$l5" "$l15" "$cores" "$procs")"
+    notify "CPU" "$body" computer-symbolic
+    ;;
+
+  memory)
+    # free -m row 2 (Mem:): $2 total, $3 used, $7 available -- all in MiB.
+    read -r total used avail < <(free -m | awk 'NR==2 {print $2, $3, $7}')
+    procs="$(ps -eo pmem=,rss=,comm= --sort=-rss | head -5 \
+               | awk '{printf "  %4s%%  %5dMB  %s\n", $1, $2/1024, $3}')"
+    body="$(printf 'Used %d / %d MiB   (%d avail)\n\nTop by memory:\n%s' \
+              "$used" "$total" "$avail" "$procs")"
+    notify "Memory" "$body" applications-system-symbolic
+    ;;
+
+  battery)
+    dev="$(upower -e | grep -m1 -i bat)"
+    info="$(upower -i "$dev")"
+    # field KEY -- pull the value after "KEY:" from upower -i output.
+    field() { awk -v k="$1" 'index($0, k) {sub(/^[^:]*:[[:space:]]*/, ""); print; exit}' <<< "$info"; }
+    state="$(field 'state:')"
+    pct="$(field 'percentage:')"
+    rate="$(field 'energy-rate:')"
+    # "time to empty" when discharging, "time to full" when charging (only one is present).
+    remain="$(awk '/time to empty:|time to full:/ {sub(/^[[:space:]]*/, ""); print; exit}' <<< "$info")"
+    body="$(printf 'Charge: %s   (%s)\nDraw: %s' "$pct" "$state" "$rate")"
+    [[ -n "$remain" ]] && body="$(printf '%s\n%s' "$body" "$remain")"
+    notify "Battery" "$body" battery-symbolic
+    ;;
+
+  *)
+    echo "usage: polybar-detail {cpu|memory|battery}" >&2
+    exit 2
+    ;;
+esac

@@ -240,6 +240,23 @@ disk usage, memory, cpu, wifi, battery, clock, a **power** glyph, plus the tray.
 module.) The power glyph is a `custom/text` module whose `click-left` runs `i3-power-menu` (see
 "Power menu" below).
 
+**Click-to-details.** The bar only has room for a glyph + one number per module, so the
+`cpu`, `memory` and `battery` modules are left-clickable: clicking one fires a deadd
+notification with the fuller breakdown — CPU shows load averages + top processes by CPU,
+memory shows usage + top processes by RAM, battery shows charge/state/draw and time-remaining.
+The helper is `~/bin/polybar-detail` (tracked as `bin/polybar-detail`, auto-symlinked by
+`install.sh`); it reuses one popup on repeated clicks (`notify-send -p`/`-r`, id stashed in
+`$XDG_RUNTIME_DIR`) and marks them `transient` so they stay out of the notification-center
+history. It needs `upower` (battery) plus the standard `nproc`/`free`/`ps`.
+
+Two implementation notes worth knowing:
+- The click is wired with a **`%{A1:polybar-detail <what>:}<label>%{A}` action tag** in the
+  module's `format` (for battery, in each `format-charging`/`-discharging`/`-full`), *not* a
+  module-level `click-left`. A bare `click-left` doesn't fire reliably on **internal** modules
+  in polybar 3.7.2 (it works for `custom/*` like the power glyph, hence the difference).
+- The detail popups run to ~8 lines, so deadd's `max-lines-in-body` is raised 4 → 10 in
+  `deadd.yml` (at 4, only the first process showed and the body was ellipsized).
+
 **Fonts / glyph icons:** two fonts are declared in `[bar/main]` — `font-0 = monospace` for text
 and `font-1 = Font Awesome 6 Free:style=Solid` for icons. Modules select the icon font with the
 `%{T2}` token (`%{T1}` = font-0, `%{T2}` = font-1, `%{T-}` reverts). Icons in use: sun
@@ -737,8 +754,8 @@ just toggles `pactl set-source-mute` directly.
 ## Follow-ups / ideas
 
 - Version-control `~/.xscreensaver` once locking preferences are tuned.
-- Now that deadd is running, add click-to-details actions on polybar (e.g. clicking the
-  battery glyph fires a `notify-send` with charge / time-remaining).
+- Extend `polybar-detail` to more modules if useful (e.g. wifi → IP/SSID/signal, disk →
+  per-mount usage).
 
 ---
 
@@ -922,3 +939,11 @@ just toggles `pactl set-source-mute` directly.
   deadd loads icons via `imageSetFromIconName`. Fixed by launching deadd with `GTK_THEME=Adwaita:dark`
   in the autostart, which flips symbolic icons to bright near-white (full-colour app icons unaffected).
   Documented the mechanism in the deadd section and added a note in `deadd.css`.
+- **2026-09-30** — Added **click-to-details** on polybar (`bin/polybar-detail`): left-clicking the
+  cpu / memory / battery glyphs fires a deadd notification with the breakdown that doesn't fit in
+  the bar — load averages + top CPU processes, memory usage + top RAM processes, and battery
+  charge/state/draw/time-remaining (via `upower`). Reuses one popup per repeated click (`-p`/`-r`)
+  and marks them `transient`. Wired with `%{A1:...:}` action tags in each module's `format` rather
+  than a module-level `click-left`, which (verified) doesn't fire on internal modules in polybar
+  3.7.2. Raised deadd's `max-lines-in-body` 4 → 10 so the ~8-line breakdowns aren't truncated. New
+  "Click-to-details" note in the polybar section.

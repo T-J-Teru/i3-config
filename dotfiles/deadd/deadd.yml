@@ -42,5 +42,7 @@ notification:
     margin-top: 12
     margin-right: 12
     margin-between: 10
-    ### Truncate long bodies in the pop-up (full text stays in the center).
-    max-lines-in-body: 4
+    ### Truncate long bodies in the pop-up (full text stays in the center). Set high
+    ### enough for the polybar-detail popups (bin/polybar-detail), whose CPU/memory
+    ### breakdowns run to ~8 lines (load/usage summary + a top-processes list).
+    max-lines-in-body: 10
