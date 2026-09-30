@@ -311,6 +311,86 @@ opacity. GTK client-side-decoration shadow regions are excluded via the
 `_GTK_FRAME_EXTENTS@` selector (note: the older `@:c` type-suffix form is deprecated
 in current picom).
 
+## Notifications (deadd)
+
+i3 ships no notification daemon, so out of the box `notify-send` fails with
+`GDBus.Error…ServiceUnknown: The name is not activatable` — nothing owns the
+`org.freedesktop.Notifications` D-Bus name. We chose **deadd** (the "Linux
+Notification Center", a Haskell/GTK3 daemon) over the lightweight options (dunst,
+etc.) because it looks modern and slick and also provides a slide-out **notification
+center** (history + a clock/date panel), all fully CSS-themeable. With picom (above)
+its cards render as translucent frosted-glass panels.
+
+deadd is **not packaged in Fedora**, so it's built from source with Haskell `stack`,
+then the resulting binary is installed to `~/bin` and autostarted from i3.
+
+### Build from source
+
+We build from a **personal fork** rather than upstream, because upstream doesn't
+compile against Fedora 44's `gi-glib` 2.0.30 (it dropped `unixSignalAdd`); the fork's
+`master` carries the one-commit fix (SIGUSR1 handled via `installHandler` + `idleAdd`).
+
+**1. Install the build dependencies (dnf).** Haskell `stack` plus the C libraries and
+headers the GTK/GLib/introspection Haskell bindings compile against:
+
+```bash
+sudo dnf install -y \
+  stack \
+  gtk3-devel cairo-devel pango-devel \
+  gobject-introspection-devel \
+  libX11-devel libXrender-devel \
+  libconfig-devel
+```
+
+**2. Clone the fork and build `master`:**
+
+```bash
+git clone git@github.com:T-J-Teru/linux_notification_center.git
+cd linux_notification_center      # Makefile is at the repo root
+make
+```
+
+`make` runs `stack setup` (which downloads the GHC the resolver pins — `lts-22.28` →
+GHC 9.6.6, a one-off ~2 GB fetch) then `stack install --local-bin-path .out`. The
+first build is slow (compiles the whole dependency tree). The result is a
+self-contained ~104 MB binary at **`.out/deadd-notification-center`**.
+
+Run it to test: `./.out/deadd-notification-center &` then `notify-send "hello" "it works"`.
+Toggle the notification center with `pkill -SIGUSR1 -x deadd-notificat` (the process
+name truncates to 15 chars, so match `deadd-notificat`, and prefer `pkill -x` over
+`pkill -f` — the latter can match your own shell's command line and kill it).
+
+### Install & autostart
+
+The ~104 MB binary is a build artifact, so it is **not** version-controlled or
+symlinked from the repo like the `bin/` scripts. Instead `install.sh` copies it into
+`~/bin` as a real file (on `$PATH`):
+
+```bash
+install -m 755 .out/deadd-notification-center ~/bin/deadd-notification-center
+```
+
+`install.sh` does this automatically via `install_deadd_binary`, reading the build
+output from `~/projects/linux_notification_center/src/.out/` by default (override with
+the `DEADD_BUILD_BIN` env var). If the build output isn't found it prints a note and
+skips, rather than failing — build deadd first, then re-run `./install.sh`.
+
+Autostart is from the i3 config, guarded like picom so an i3 restart doesn't leave two
+daemons fighting over the D-Bus name:
+
+```
+exec_always --no-startup-id "pkill -x deadd-notificat; sleep 0.5; exec deadd-notification-center"
+```
+
+### Configuration & theme
+
+deadd resolves its config dir via `getXdgDirectory XdgConfig ""`, i.e. it reads
+**`~/.config/deadd/deadd.yml`** (behaviour) and **`~/.config/deadd/deadd.css`**
+(appearance). Both are version-controlled here under `dotfiles/deadd/` and symlinked
+into place. The CSS is a dark theme matching the polybar palette (translucent cards,
+rounded corners, a red critical-urgency variant, and a large clock in the center);
+the translucency/blur only looks right with picom running.
+
 ## Launcher / window switching (rofi)
 
 rofi (Fedora repo) replaces dmenu as the launcher and adds window/workspace switchers.
@@ -611,6 +691,9 @@ emit with `xev` (they may produce different keysyms) and adjust the bindings.
 ## Follow-ups / ideas
 
 - Version-control `~/.xscreensaver` once locking preferences are tuned.
+- Now that deadd is running, add click-to-details actions on polybar (e.g. clicking the
+  battery glyph fires a `notify-send` with charge/time-remaining), and a brightness/volume
+  OSD via deadd.
 
 ---
 
@@ -769,3 +852,14 @@ emit with `xev` (they may produce different keysyms) and adjust the bindings.
   restart. Added `picom` to install.sh + symlink and a new "Compositor (picom)" doc section. Primary
   motivation: make the (in-progress) deadd notification cards render as frosted-glass panels. Fixed
   a deprecated `_GTK_FRAME_EXTENTS@:c` → `_GTK_FRAME_EXTENTS@` selector.
+- **2026-09-30** — Installed **deadd** (notification daemon) permanently and documented it in a
+  new "Notifications (deadd)" section. Not in Fedora's repos, so it's built with Haskell `stack`
+  from a personal fork whose `master` carries the gi-glib 2.0.30 build fix (`unixSignalAdd` →
+  `installHandler`+`idleAdd`; committed to the fork and pushed). Listed the dnf build deps
+  (`stack`, `gtk3-devel`, `cairo-devel`, `pango-devel`, `gobject-introspection-devel`,
+  `libX11-devel`, `libXrender-devel`, `libconfig-devel`) and the `make` build (→ `.out/…`). The
+  ~104 MB binary is too big to version-control, so `install.sh` copies it into `~/bin` (helper
+  `install_deadd_binary`, `DEADD_BUILD_BIN`-overridable; skips with a note if the build output
+  isn't present). Autostart added to the i3 config (`exec_always` with a `pkill -x deadd-notificat`
+  guard, like picom). Config/theme (`dotfiles/deadd/deadd.{yml,css}`) symlinked into
+  `~/.config/deadd/` by `install.sh`.

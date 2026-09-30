@@ -100,6 +100,11 @@ create_symlinks() {
   # picom compositor config
   link "$REPO/dotfiles/picom/picom.conf" "$HOME/.config/picom/picom.conf"
 
+  # deadd (notification daemon) config + theme. deadd reads ~/.config/deadd/.
+  # (The binary itself is not a symlink -- see install_deadd_binary below.)
+  link "$REPO/dotfiles/deadd/deadd.yml" "$HOME/.config/deadd/deadd.yml"
+  link "$REPO/dotfiles/deadd/deadd.css" "$HOME/.config/deadd/deadd.css"
+
   # Desktop-entry overrides (add search keywords etc.). ~/.local/share/applications
   # takes precedence over /usr/share/applications.
   for f in "$REPO"/dotfiles/applications/*.desktop; do
@@ -118,7 +123,35 @@ create_symlinks() {
 }
 
 #-----------------------------------------------------------------------------#
-# 3. System keyboard config
+# 3. deadd notification daemon binary
+#-----------------------------------------------------------------------------#
+
+# deadd (Linux Notification Center) is NOT packaged in Fedora and must be built from
+# source with Haskell stack (see "Notifications (deadd)" in i3-setup.md). The build
+# produces a ~104 MB self-contained binary -- too big to version-control -- so we copy
+# it into ~/bin as a real file (not a repo symlink like the other bin/ scripts). If the
+# build output isn't found, skip with instructions rather than failing: the configs and
+# symlinks are installed regardless, and the binary can be added on a later re-run.
+DEADD_BUILD_BIN="${DEADD_BUILD_BIN:-$HOME/projects/linux_notification_center/src/.out/deadd-notification-center}"
+
+install_deadd_binary() {
+  local dest="$HOME/bin/deadd-notification-center"
+  if [[ -x "$DEADD_BUILD_BIN" ]]; then
+    echo ">> Installing deadd binary -> $dest"
+    mkdir -p "$HOME/bin"
+    install -m 755 "$DEADD_BUILD_BIN" "$dest"
+  elif [[ -x "$dest" ]]; then
+    echo ">> deadd binary already present at $dest (build output not found; keeping it)"
+  else
+    echo ">> NOTE: deadd not installed -- build output not found at:"
+    echo "     $DEADD_BUILD_BIN"
+    echo "   Build it first (see \"Notifications (deadd)\" in i3-setup.md), or point"
+    echo "   DEADD_BUILD_BIN at the built binary, then re-run ./install.sh."
+  fi
+}
+
+#-----------------------------------------------------------------------------#
+# 4. System keyboard config
 #-----------------------------------------------------------------------------#
 
 # Make Caps Lock a Ctrl key (ctrl:nocaps), applied to every keyboard including
@@ -134,7 +167,7 @@ configure_keyboard() {
 }
 
 #-----------------------------------------------------------------------------#
-# 4. System timezone
+# 5. System timezone
 #-----------------------------------------------------------------------------#
 
 # Set the system timezone. Machines have shipped set to a US zone; correct it to
@@ -156,6 +189,7 @@ main() {
     configure_timezone
   fi
   create_symlinks
+  install_deadd_binary
   echo
   echo ">> Done. Log out, then pick the 'i3' session at the gdm login screen."
 }

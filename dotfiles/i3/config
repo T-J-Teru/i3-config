@@ -38,6 +38,14 @@ exec_always --no-startup-id autorandr --change
 # i3-setup.md.
 exec_always --no-startup-id "pkill -x picom; sleep 0.5; exec picom --config $HOME/.config/picom/picom.conf"
 
+# Notification daemon: deadd (Linux Notification Center). Owns the D-Bus
+# org.freedesktop.Notifications name; shows notification pop-ups and a slide-out
+# notification center. Built from source (not in Fedora's repos) and installed to
+# ~/bin -- see "Notifications (deadd)" in i3-setup.md. Guarded like picom so an i3
+# restart doesn't leave two daemons fighting over the D-Bus name (the process name
+# truncates to 15 chars, hence `pkill -x deadd-notificat`).
+exec_always --no-startup-id "pkill -x deadd-notificat; sleep 0.5; exec deadd-notification-center"
+
 # nm-applet and pactl (below) are a popular choice. Modify as you see fit.
 
 # Screen saver + locking via xscreensaver (chosen over i3lock; see i3-setup.md).

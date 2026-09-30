@@ -1,0 +1,46 @@
+### deadd (linux notification center) configuration -- themed for this i3 setup.
+### Location: ~/.config/deadd/deadd.yml (deadd resolves its config dir via
+### getXdgDirectory XdgConfig ""). The matching CSS is ~/.config/deadd/deadd.css.
+### See "Notifications (deadd)" in i3-setup.md.
+
+### Outer margins of the notification center / notifications.
+margin-top: 0
+margin-right: 0
+margin-bottom: 0
+
+### Width of the notification center and pop-ups (px).
+width: 400
+
+### Open on whichever monitor currently has the mouse (dual-monitor friendly).
+follow-mouse: true
+
+notification-center:
+  ### Close the center when the pointer leaves it.
+  hide-on-mouse-leave: true
+  ### Newest notifications on top.
+  new-first: true
+
+notification:
+  ### Render pango markup (<b>, <i>, <u>, <a>) and HTML entities.
+  use-markup: true
+  parse-html-entities: true
+
+  app-icon:
+    ### Fall back to guessing an app icon from the app name when none is sent.
+    guess-icon-from-name: true
+    icon-size: 24
+
+  image:
+    ### Max size of images embedded in notifications (px).
+    size: 80
+
+  popup:
+    ### How long pop-ups stay on screen (ms); notify-send -t overrides.
+    default-timeout: 8000
+    ### Keep pop-ups clear of the screen edges; polybar is at the bottom so the
+    ### default top-right placement doesn't collide with it.
+    margin-top: 12
+    margin-right: 12
+    margin-between: 10
+    ### Truncate long bodies in the pop-up (full text stays in the center).
+    max-lines-in-body: 4

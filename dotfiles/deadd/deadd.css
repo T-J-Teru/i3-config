@@ -1,0 +1,172 @@
+/* ============================================================================
+   deadd notification center -- theme for this i3 setup.
+   GTK3-flavored CSS. Palette matches polybar (see dotfiles/polybar/config.ini):
+     bg #222222 | surface #2b2d31 | text #dfdfdf | subtext #8a9099
+     accent #4c7899 | critical #bd2c40
+   Class names come from deadd's README ("CSS styling"): the semantic
+   label.deadd-noti-center.<place>.<part> selectors are the stable hooks.
+
+   NOTE: transparency/rounded corners look right only with a compositor
+   (picom). Without one, RGBA areas render black, so this theme keeps the
+   card backgrounds OPAQUE. If picom is enabled, the corners round cleanly.
+   ========================================================================== */
+
+.deadd-noti-center {
+    font-family: "Cantarell", "Noto Sans", sans-serif;
+}
+
+/* The pop-up / center windows. Transparent so only the rounded card shows;
+   picom composites the transparent area (shadow + frosted blur behind it). */
+#main_window,
+.blurredBG,
+.blurredBG.low,
+.blurredBG.normal {
+    background: transparent;
+}
+
+/* ---- Notification pop-up card ---------------------------------------------- */
+/* Card background/border go on the window-level background element
+   (.blurredBG.notification). Do NOT use a bare `.notification` selector: the
+   title/body/appname labels also carry the `notification` class and would each
+   get a border. Inner padding goes on the `.notification.container` box.
+   The translucent alpha lets picom's blur frost the desktop behind the card. */
+.blurredBG.notification {
+    background-color: rgba(43, 45, 49, 0.82);
+    border: 1px solid rgba(76, 120, 153, 0.55);
+    border-radius: 12px;
+}
+
+.notification.container {
+    padding: 10px 14px;
+}
+
+/* ---- Text ------------------------------------------------------------------ */
+label {
+    color: #dfdfdf;
+}
+
+label.deadd-noti-center.notification.title,
+label.deadd-noti-center.in-center.title,
+.title {
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+label.deadd-noti-center.notification.body,
+label.deadd-noti-center.in-center.body {
+    color: #c3c7cc;
+    font-size: 12px;
+}
+
+label.deadd-noti-center.notification.appname,
+label.deadd-noti-center.in-center.appname,
+.appname {
+    color: #4c7899;
+    font-weight: bold;
+    font-size: 10px;
+}
+
+label.deadd-noti-center.in-center.time,
+.time {
+    color: #8a9099;
+    font-size: 10px;
+}
+
+/* ---- Critical urgency ------------------------------------------------------ */
+.blurredBG.notification.critical {
+    background-color: rgba(58, 30, 34, 0.86);
+    border: 1px solid #bd2c40;
+}
+
+.notificationInCenter.critical {
+    background-color: rgba(58, 30, 34, 0.9);
+    border-radius: 10px;
+}
+
+label.critical,
+.notificationInCenter label.critical {
+    color: #ffe1e4;
+}
+
+/* High-specificity overrides so critical text stays legible on the red card. */
+.notification.critical label.deadd-noti-center.notification.title,
+.notificationInCenter.critical label.deadd-noti-center.in-center.title {
+    color: #ffffff;
+}
+.notification.critical label.deadd-noti-center.notification.body,
+.notificationInCenter.critical label.deadd-noti-center.in-center.body {
+    color: #f2c9cd;
+}
+.notification.critical label.deadd-noti-center.notification.appname,
+.notificationInCenter.critical label.deadd-noti-center.in-center.appname {
+    color: #ff9aa3;
+}
+
+/* ---- Notification center panel --------------------------------------------- */
+.noti-center {
+    background-color: rgba(28, 29, 32, 0.90);
+}
+
+label.deadd-noti-center.noti-center.time,
+.noti-center.time {
+    color: #ffffff;
+    font-weight: 300;
+    font-size: 34px;
+}
+
+label.deadd-noti-center.noti-center.date {
+    color: #8a9099;
+    font-size: 13px;
+}
+
+/* Cards stacked inside the center */
+.notificationInCenter {
+    background-color: rgba(38, 40, 44, 0.92);
+    border-radius: 10px;
+}
+
+/* ---- Buttons --------------------------------------------------------------- */
+button,
+button.deadd-noti-center.notification.actionbutton,
+button.deadd-noti-center.in-center.actionbutton,
+button.deadd-noti-center.in-center.button-close {
+    background: transparent;
+    color: #dfdfdf;
+    border: none;
+    border-radius: 8px;
+    text-shadow: none;
+}
+
+button:hover {
+    background: rgba(76, 120, 153, 0.25);
+    color: #ffffff;
+}
+
+label.deadd-noti-center.noti-center.delete-all {
+    color: #dfdfdf;
+}
+
+/* User buttons (custom actions in the center) */
+button.deadd-noti-center.noti-center.userbutton,
+.userbutton {
+    background: rgba(76, 120, 153, 0.15);
+    border-radius: 8px;
+}
+
+button.deadd-noti-center.noti-center.userbutton:hover,
+.userbutton:hover {
+    background: rgba(76, 120, 153, 0.30);
+}
+
+/* ---- Icons / images -------------------------------------------------------- */
+image.deadd-noti-center.notification.icon,
+image.deadd-noti-center.in-center.icon {
+    margin-right: 10px;
+}
+
+image.deadd-noti-center.notification.image,
+image.deadd-noti-center.in-center.image {
+    margin-left: 12px;
+    border-radius: 6px;
+}
