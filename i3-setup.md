@@ -353,9 +353,17 @@ then the resulting binary is installed to `~/bin` and autostarted from i3.
 
 ### Build from source
 
-We build from a **personal fork** rather than upstream, because upstream doesn't
-compile against Fedora 44's `gi-glib` 2.0.30 (it dropped `unixSignalAdd`); the fork's
-`master` carries the one-commit fix (SIGUSR1 handled via `installHandler` + `idleAdd`).
+We build from a **personal fork** rather than upstream, carrying two local commits on
+`master`:
+
+1. **Fedora 44 build fix** — upstream doesn't compile against `gi-glib` 2.0.30 (it
+   dropped `unixSignalAdd`); handle SIGUSR1 via `installHandler` + `idleAdd` instead.
+2. **Multi-monitor center resize** — `setNotificationCenterPosition` (in
+   `NotificationCenter.hs`) sized the center with `windowSetDefaultSize`, which GTK only
+   honours on a window's *first* map; on later shows it's a no-op, so the center kept its
+   first monitor's height and overlapped polybar (or left a big gap) when reopened on a
+   monitor of a different height. Added a `windowResize` call so it re-sizes on every
+   show. Needed here because the two monitors differ in height (1080 vs 1200).
 
 **1. Install the build dependencies (dnf).** Haskell `stack` plus the C libraries and
 headers the GTK/GLib/introspection Haskell bindings compile against:
@@ -428,6 +436,18 @@ into place. The CSS is a dark theme matching the polybar palette (translucent ca
 rounded corners, a red critical-urgency variant, and a large clock in the center);
 the translucency/blur only looks right with picom running. Note symbolic icon
 brightness is *not* a CSS setting — see `GTK_THEME` in the autostart above.
+
+**Clearing polybar.** The notification center is drawn full screen height, so by
+default its bottom edge sits *underneath* polybar (which docks at the bottom of every
+monitor). deadd reserves space for a bottom bar via the `margin-bottom` key: it draws
+the center `screenHeight − margin-top − margin-bottom` tall, so `margin-bottom: 32`
+(polybar is ~32px = 24pt @ 96dpi) shrinks the center to stop flush above the bar
+instead of overlapping it. The value is the same for both monitors since both bottom
+bars are the same height. (Internally deadd maps `margin-top`/`margin-bottom` to its
+top/bottom bar-height settings — see `NotificationCenter.hs`.) On a multi-monitor setup
+with **differently-sized** monitors this only behaves correctly with the fork's
+`windowResize` commit (see "Build from source" above); without it the center keeps the
+height of whichever monitor it was first opened on.
 
 ## Launcher / window switching (rofi)
 
@@ -967,3 +987,14 @@ just toggles `pactl set-source-mute` directly.
   and (like it) on the primary display only. It's a `custom/text` module whose `click-left` sends
   `pkill -SIGUSR1 -x deadd-notificat`, toggling the deadd center open/closed. Dropped from
   `[bar/secondary]`'s `modules-right` alongside `power`, so it too is primary-display only.
+- **2026-09-30** — Stopped the deadd **notification center overlapping polybar**. The center is
+  drawn full screen height, so its bottom edge previously sat under the bottom-docked bar. Set
+  deadd's `margin-bottom: 32` (≈ polybar's 24pt @ 96dpi height), which reserves bottom-bar space so
+  the center is drawn that much shorter and ends flush above the bar. Verified on both monitors.
+- **2026-09-30** — Fixed the notification center **overlapping polybar on the primary monitor after
+  it had been opened on the (taller) secondary one first**. Root cause: deadd sized the center with
+  `windowSetDefaultSize`, which GTK only honours on a window's first map, so the height was locked
+  to whichever monitor opened it first and never adapted (our monitors are 1080 vs 1200 tall).
+  Added a second commit to the deadd fork that also calls `windowResize` in
+  `setNotificationCenterPosition`, forcing a resize on every show. Rebuilt and reinstalled the
+  binary; verified the center now resizes correctly on both monitors in either open order.
