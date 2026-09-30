@@ -2,10 +2,11 @@
 #
 # i3-power-menu -- a rofi power menu for i3.
 #
-# Presents Lock / Logout / Suspend / Reboot / Shutdown and runs the chosen action.
-# All actions go through systemd-logind (via polkit), so the active local session
-# needs no sudo/password. Launched from the polybar power glyph (custom/text
-# click-left) and bound to $mod+Escape in the i3 config.
+# Presents Lock / Logout / Suspend / Reboot / Shutdown and hands the chosen action
+# to i3-exit, so the destructive ones get the same zenity confirmation dialog as the
+# $mod+Shift+e "System mode" path. Actions go through systemd-logind (via polkit),
+# so the active local session needs no sudo/password. Launched from the polybar
+# power glyph (custom/text click-left) and bound to $mod+Escape in the i3 config.
 #
 # Icons are Font Awesome 6 Free (Solid) glyphs, generated with printf '\uXXXX' so the
 # source stays ASCII while the exact codepoints reach rofi. pango falls back to the FA
@@ -28,12 +29,13 @@ $shutdown  Shutdown"
 
 chosen="$(printf '%s\n' "$options" | rofi -dmenu -i -p 'Power' -theme arthur)"
 
-# Match on the trailing label (the leading glyph varies).
+# Match on the trailing label (the leading glyph varies). Delegate to i3-exit, which
+# runs the actual action and confirms the destructive ones via zenity.
 case "$chosen" in
-  *Lock)     xscreensaver-command -lock ;;
-  *Logout)   i3-msg exit ;;
-  *Suspend)  systemctl suspend ;;
-  *Reboot)   systemctl reboot ;;
-  *Shutdown) systemctl poweroff ;;
+  *Lock)     i3-exit lock ;;
+  *Logout)   i3-exit logout ;;
+  *Suspend)  i3-exit suspend ;;
+  *Reboot)   i3-exit reboot ;;
+  *Shutdown) i3-exit shutdown ;;
   *)         exit 0 ;;   # dismissed (Escape / empty)
 esac

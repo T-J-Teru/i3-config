@@ -297,11 +297,14 @@ rofi menu offering **Lock / Logout / Suspend / Reboot / Shutdown**. It's reachab
 - the **power glyph** at the right end of polybar (`custom/text` module, `click-left`), and
 - the **`$mod+Escape`** keybinding in the i3 config.
 
-The actions go through systemd-logind (`systemctl suspend|reboot|poweroff`, `i3-msg exit`,
-`xscreensaver-command -lock`), so the active local session runs them via polkit with **no sudo**.
-(Reboot/shutdown may prompt for authentication if another user session is also logged in.) The
-menu labels carry Font Awesome glyphs generated with `printf '\uXXXX'`; pango falls back to the
-FA font per-glyph, so they render even though the rofi `arthur` theme's font isn't FA.
+Once an entry is picked, `i3-power-menu` hands the action off to **`i3-exit`** (the same script
+the System mode uses), so the destructive actions get a **zenity confirmation dialog** — the two
+paths now behave identically. The underlying actions go through systemd-logind
+(`systemctl suspend|reboot|poweroff`, `i3-msg exit`, `xscreensaver-command -lock`), so the active
+local session runs them via polkit with **no sudo**. (Reboot/shutdown may prompt for
+authentication if another user session is also logged in.) The menu labels carry Font Awesome
+glyphs generated with `printf '\uXXXX'`; pango falls back to the FA font per-glyph, so they
+render even though the rofi `arthur` theme's font isn't FA.
 
 ### System mode (`$mod+Shift+e`, i3-exit)
 
@@ -1209,3 +1212,7 @@ just toggles `pactl set-source-mute` directly.
   actions go via systemd-logind (no sudo). Kept alongside the `$mod+Escape` rofi power menu on
   purpose (keyboard mode vs. mouse list). Added `zenity` to `install.sh`. New "System mode"
   doc subsection. Verified the mode registers in i3 and `i3-exit` dispatches.
+- **2026-09-30** — Routed the **rofi power menu (`i3-power-menu`) through `i3-exit`** too, so the
+  `$mod+Escape` / polybar-glyph path gets the same zenity confirmation on the destructive actions
+  as the `$mod+Shift+e` System mode. Each menu entry now calls `i3-exit <action>` instead of
+  invoking `systemctl`/`i3-msg` directly. Both power paths now behave identically.
