@@ -281,9 +281,10 @@ place.
 **Requires:** `gnome-keyring` + `gcr` (both in `install.sh`'s package list; normally already
 present from gdm/GNOME).
 
-> **Transitional:** the earlier OpenSSH-agent helpers — `openssh-askpass`,
-> `dotfiles/bashrc.d/ssh-askpass.sh`, and `bin/ssh-askpass-dark` — are superseded by the
-> above and will be removed once the gnome-keyring approach is confirmed across a reboot.
+> **History:** an earlier iteration routed SSH through the per-session OpenSSH agent with a
+> GUI askpass (`openssh-askpass` + `dotfiles/bashrc.d/ssh-askpass.sh` + `bin/ssh-askpass-dark`,
+> with `GTK_THEME=Adwaita:dark` wrapping). That gave "once per session" caching but not
+> across reboots, and has been removed in favour of the gnome-keyring approach above.
 
 ## Terminal (Ptyxis)
 
@@ -1049,10 +1050,7 @@ just toggles `pactl set-source-mute` directly.
 
 ## Follow-ups / ideas
 
-- **Verify gnome-keyring SSH across a reboot, then retire the old askpass bits.** Confirm the
-  gcr prompt appears, stores the passphrase, and stays silent after a reboot; then remove
-  `openssh-askpass` (from `install.sh`), `dotfiles/bashrc.d/ssh-askpass.sh`, and
-  `bin/ssh-askpass-dark`. See "SSH agent / passphrase caching".
+- _(none open)_
 
 ---
 
@@ -1388,6 +1386,10 @@ just toggles `pactl set-source-mute` directly.
   keys listed via `ssh-add -l`. Also added a **global GTK dark fix** so the gcr prompter renders
   dark — `dotfiles/gtk-3.0/settings.ini` (`gtk-application-prefer-dark-theme=1`) plus
   `install.sh` setting the gsettings `color-scheme` to `prefer-dark` for GTK4. `install.sh`
-  gained `gnome-keyring`/`gcr` and the two symlinks. shellcheck clean. _Pending:_ confirm the
-  gcr prompt + store works and survives a reboot, then retire `openssh-askpass`,
-  `bashrc.d/ssh-askpass.sh`, and `bin/ssh-askpass-dark`.
+  gained `gnome-keyring`/`gcr` and the two symlinks. shellcheck clean.
+- **2026-10-01** — Verified the gnome-keyring approach end to end (gcr prompt appears dark,
+  stores the passphrase, and stays silent after a reboot; `ssh`/`git fetch`/`git push` all work),
+  then **retired the superseded OpenSSH-askpass helpers**: removed `openssh-askpass` from
+  `install.sh`, `git rm`'d `dotfiles/bashrc.d/ssh-askpass.sh` and `bin/ssh-askpass-dark`, and
+  dropped the now-empty `dotfiles/bashrc.d/` glob loop from `install.sh`. Cleaned up the live
+  symlinks. `AddKeysToAgent yes` stays in `~/.ssh/config` as a harmless no-op. shellcheck clean.

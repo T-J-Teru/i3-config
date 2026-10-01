@@ -82,10 +82,6 @@ PACKAGES=(
   # it pops on first key use. See "SSH agent / passphrase caching" in i3-setup.md.
   gnome-keyring gcr
 
-  # Legacy GUI askpass (gnome-ssh-askpass), used by the now-superseded
-  # dotfiles/bashrc.d/ssh-askpass.sh. Retained until that drop-in is retired.
-  openssh-askpass
-
   # Perl modules used by i3-rename-workspace.
   perl-indirect perl-JSON-Parse perl-Carp-Assert
 
@@ -160,13 +156,6 @@ create_symlinks() {
   # ~/.config). Written by xscreensaver-settings; version-controlled so lock/idle
   # timeouts and the saver list survive a reinstall. See "Screen locking" in i3-setup.md.
   link "$REPO/dotfiles/xscreensaver/xscreensaver" "$HOME/.xscreensaver"
-
-  # bash drop-ins: Fedora's ~/.bashrc sources every file in ~/.bashrc.d/, so each
-  # tracked snippet is auto-loaded by interactive shells. ssh-askpass.sh routes SSH
-  # passphrase prompts to the GUI. See "SSH agent / passphrase caching" in i3-setup.md.
-  for f in "$REPO"/dotfiles/bashrc.d/*; do
-    link "$f" "$HOME/.bashrc.d/$(basename "$f")"
-  done
 
   # autorandr global hooks (e.g. postswitch: re-home workspaces for the 'home'
   # profile). The per-profile dirs under ~/.config/autorandr/<name> are EDID-keyed
