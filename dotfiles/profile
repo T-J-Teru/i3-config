@@ -21,7 +21,7 @@
 # it is sourced by /bin/sh, not bash. (Interactive bash uses ~/.bash_profile and
 # does not read this file, which is fine: the X session is what needs these.)
 #
-# See "SSH agent / passphrase caching" in ~/Documents/Machine-Setup/i3-setup.md.
+# See "SSH agent / passphrase caching" in this repo's i3-setup.md.
 
 # Use gnome-keyring's ssh-agent as the session's SSH agent.
 #

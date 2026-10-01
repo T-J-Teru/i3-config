@@ -33,7 +33,7 @@ The config and scripts are version-controlled here and symlinked into the home d
 (repo = real files, home = symlinks pointing in). Grouped-by-app layout:
 
 ```
-Machine-Setup/
+i3-config/
 ├── README.md          # quick start
 ├── i3-setup.md        # this document
 ├── install.sh         # idempotent: installs packages + creates symlinks
@@ -47,6 +47,10 @@ Machine-Setup/
 `install.sh` backs up any pre-existing real file (to `<name>.bak`) before replacing it
 with a symlink, so it is safe to re-run. `./install.sh --links` does symlinks only.
 (We considered GNU `stow` but chose this simpler explicit approach for now.)
+
+The repo can live **anywhere** — `install.sh` resolves its own location at runtime and
+points every symlink back into wherever it's checked out, so there's no required clone
+path. If you move the repo, just re-run `./install.sh --links` to re-point the symlinks.
 
 ---
 
@@ -154,35 +158,36 @@ It then writes a default config to `~/.config/i3/config`.
 
 ## Managing the config
 
-The i3 configuration is **version-controlled in this `Machine-Setup` directory** and
+The i3 configuration is **version-controlled in this `i3-config` repo** and
 symlinked into place, rather than edited under `~/.config/i3` directly. Future machine
 setup is then: install packages (Step 1), restore this repo, recreate the symlink.
 
 **Layout**
 
 ```
-Machine-Setup/dotfiles/i3/config   <- the real, version-controlled file
-~/.config/i3/config                -> symlink to the above
+i3-config/dotfiles/i3/config   <- the real, version-controlled file
+~/.config/i3/config            -> symlink to the above
 ```
 
-**Setup performed** (after the first-run wizard generated `~/.config/i3/config`):
+**Setup performed** (after the first-run wizard generated `~/.config/i3/config`), run
+from the repo root:
 
 ```bash
-mkdir -p ~/Documents/Machine-Setup/dotfiles/i3
-mv ~/.config/i3/config ~/Documents/Machine-Setup/dotfiles/i3/config
-ln -s ~/Documents/Machine-Setup/dotfiles/i3/config ~/.config/i3/config
+mkdir -p "$PWD/dotfiles/i3"
+mv ~/.config/i3/config "$PWD/dotfiles/i3/config"
+ln -s "$PWD/dotfiles/i3/config" ~/.config/i3/config
 ```
 
-**On a fresh machine** (repo already restored to `~/Documents/Machine-Setup`), skip
-the wizard's file and just link ours:
+**On a fresh machine** (repo already cloned), skip the wizard's file and just link
+ours, again from the repo root:
 
 ```bash
 mkdir -p ~/.config/i3
-ln -sf ~/Documents/Machine-Setup/dotfiles/i3/config ~/.config/i3/config
+ln -sf "$PWD/dotfiles/i3/config" ~/.config/i3/config
 ```
 
 > Editing note: because `~/.config/i3/config` is a symlink, edit the real file at
-> `Machine-Setup/dotfiles/i3/config`. After changes, apply them with `i3-msg reload`
+> `i3-config/dotfiles/i3/config`. After changes, apply them with `i3-msg reload`
 > (or Mod+Shift+c), and validate syntax with `i3 -C -c ~/.config/i3/config`.
 
 ## Screen locking / screensaver (xscreensaver)
@@ -1393,3 +1398,10 @@ just toggles `pactl set-source-mute` directly.
   `install.sh`, `git rm`'d `dotfiles/bashrc.d/ssh-askpass.sh` and `bin/ssh-askpass-dark`, and
   dropped the now-empty `dotfiles/bashrc.d/` glob loop from `install.sh`. Cleaned up the live
   symlinks. `AddKeysToAgent yes` stays in `~/.ssh/config` as a harmless no-op. shellcheck clean.
+- **2026-10-01** — Pushed the history to GitHub (`git@github.com:T-J-Teru/i3-config.git`) and
+  made the docs **location-independent**. Confirmed no script requires a fixed clone path:
+  `install.sh` resolves its own location via `REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"`
+  and points every symlink back into it, so the repo works from anywhere. Replaced all
+  `~/Documents/Machine-Setup` references (README quick-start, this document's layout/examples,
+  and the `install.sh`/`dotfiles/profile` comments) with the GitHub repo name `i3-config` and
+  repo-relative (`$PWD`) paths; noted that moving the repo just needs `./install.sh --links`.

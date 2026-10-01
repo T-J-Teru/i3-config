@@ -13,7 +13,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #
-# install.sh -- set up this machine's i3 environment from the Machine-Setup repo.
+# install.sh -- set up this machine's i3 environment from the i3-config repo.
 #
 # Idempotent: safe to re-run. It (1) installs the required packages and (2) creates
 # symlinks from the home directory into this repo. Any pre-existing *real* file that

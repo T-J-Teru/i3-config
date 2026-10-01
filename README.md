@@ -13,7 +13,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 
-# Machine-Setup
+# i3-config
 
 Personal configuration and setup notes for reproducing my machine environment,
 starting with the **i3 window manager** on Fedora Workstation.
@@ -37,8 +37,8 @@ into it. Edit files here (not the symlinks).
 ## Fresh machine
 
 ```bash
-git clone <this-repo> ~/Documents/Machine-Setup
-cd ~/Documents/Machine-Setup
+git clone git@github.com:T-J-Teru/i3-config.git   # clone it wherever you like
+cd i3-config
 ./install.sh            # installs packages (sudo) and creates symlinks
 # log out, then choose the "i3" session at the gdm login screen
 ```
