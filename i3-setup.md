@@ -215,53 +215,75 @@ file in place (now the symlink target), so the change lands in the repo — just
 
 ## SSH agent / passphrase caching
 
-**Symptom this fixes:** `git push` (and any `ssh`) over an SSH key with a passphrase
-prompted for that passphrase *every time* — in the terminal — instead of a GUI box once
-per session like the old machine.
+**Goal:** enter a key's passphrase *once, ever* — stored encrypted and auto-unlocked at
+login, surviving reboots — rather than re-entering it once per session. This matches the old
+machine, which (it turned out) used **gnome-keyring's ssh-agent**. The new machine now does
+the same.
 
-**What was already right:** a single `ssh-agent` runs for the whole login session. Fedora's
-`/etc/X11/xinit/xinitrc-common` wraps the X session in `ssh-agent` (you can see it as the
-parent of i3: `ssh-agent … -c "i3"`), and `SSH_AUTH_SOCK` is exported. So the agent that
-should hold unlocked keys exists and lives as long as the session does.
+**The two candidate agents.** A desktop login can route SSH through either of two agents:
 
-**Why it still re-prompted:** two pieces were missing.
+- **OpenSSH's `ssh-agent`** — Fedora's `/etc/X11/xinit/xinitrc-common` wraps the whole X
+  session in one (visible as the parent of i3: `ssh-agent … "i3"`). It's the real, fully
+  standards-compliant agent, but it only caches a key *in memory for the session*: after a
+  reboot you unlock again, and it needs `AddKeysToAgent yes` to retain a key past the first
+  connection at all.
+- **gnome-keyring's ssh-agent** — part of the gnome-keyring daemon. It stores each key's
+  passphrase in the **Login keyring** (encrypted; unlocked automatically by `pam_gnome_keyring`
+  at gdm login using your login password), so an unlocked key *persists across logouts and
+  reboots*. This is the "enter once, ever" behaviour.
 
-1. **The agent was never given the key.** By default `ssh` unlocks a key for one connection
-   and discards it — it does *not* hand it to the agent. The fix is **`AddKeysToAgent yes`**
-   in the `Host *` block of `~/.ssh/config`: after the first passphrase-unlock the key is
-   stored in the session agent, so nothing that session re-prompts. It's on-demand per key
-   (there are ~13 keys here), so each is cached the first time it's actually used. This is
-   the core fix. *`~/.ssh/config` is deliberately NOT version-controlled — it lists internal
-   hostnames/IPs — so this line is a live edit only (a timestamped `~/.ssh/config.bak.*` was
-   made before editing).*
+We use **gnome-keyring**. (The old machine's `SSH_AUTH_SOCK` pointed at
+`/run/user/<uid>/keyring/ssh`; that's the tell.)
 
-2. **The prompt was a terminal prompt, not a GUI box.** No askpass helper was installed and
-   `SSH_ASKPASS_REQUIRE` was unset. Installing **`openssh-askpass`** provides the GTK dialog
-   (`gnome-ssh-askpass`, at `/usr/libexec/openssh/ssh-askpass`), and
-   **`SSH_ASKPASS_REQUIRE=prefer`** tells `ssh` to use that GUI helper *even when it has a
-   controlling terminal* (the default only uses it when there's no tty, which is why a push
-   from a terminal would otherwise still prompt inline). Both env vars are set in
-   `dotfiles/bashrc.d/ssh-askpass.sh`.
+**How it's wired up.** The gnome-keyring daemon is already running — `pam_gnome_keyring` in
+`/etc/pam.d/gdm-password` starts its `secrets` component and unlocks the Login keyring at
+login. What's missing under i3 is the **`ssh` component**: the stock autostart files
+(`/etc/xdg/autostart/gnome-keyring-ssh.desktop`) are marked `OnlyShowIn=GNOME;…`, so i3
+never runs them. We supply it ourselves from **`dotfiles/profile`** (→ `~/.profile`):
 
-   **Dark theme.** `gnome-ssh-askpass` is GTK3 and — exactly like deadd — doesn't pick up the
-   dark preference under i3, so it renders in light Adwaita against the dark session. So
-   `SSH_ASKPASS` points not at the binary directly but at **`bin/ssh-askpass-dark`**, a
-   one-line wrapper that runs it with `GTK_THEME=Adwaita:dark`. The theme override is scoped to
-   the dialog (set in the wrapper's `exec env …`) rather than exported session-wide, so it
-   doesn't restyle every other GTK app launched from a terminal.
+```sh
+eval "$(gnome-keyring-daemon --start --components=ssh)"
+export SSH_AUTH_SOCK          # = $XDG_RUNTIME_DIR/keyring/ssh
+dbus-update-activation-environment --systemd SSH_AUTH_SOCK DISPLAY XAUTHORITY
+```
 
-**Where the env vars live.** Fedora's stock `~/.bashrc` sources every file in `~/.bashrc.d/`,
-so the setting is a repo-tracked drop-in — `dotfiles/bashrc.d/ssh-askpass.sh`, symlinked to
-`~/.bashrc.d/ssh-askpass.sh` by `install.sh` (globbed, like `bin/*`) — with no edit to
-`~/.bashrc` itself. This is the repo's first `~/.bashrc.d/` entry. Because `git push` runs in
-an interactive shell, `.bashrc.d` is guaranteed to have applied; a fresh terminal picks it up
-(existing terminals need `source ~/.bashrc.d/ssh-askpass.sh` or a new window).
+`xinitrc-common` sources `~/.profile` (its line 20) *before* its own ssh-agent block (lines
+54–61) and before i3. Two things fall out of that ordering:
 
-**Net result:** first `git push` of a session → GUI passphrase box → key cached in the agent
-→ no further prompts until logout. Confirm what the agent holds with `ssh-add -l`.
+1. every process in the session — GUI apps and shells alike — inherits `SSH_AUTH_SOCK`
+   pointing at gnome-keyring's socket; and
+2. because `SSH_AUTH_SOCK` is now set, xinitrc-common's agent block (guarded on it being
+   empty) **skips starting the redundant OpenSSH agent entirely** — no `/etc` edits needed.
 
-**Requires:** `sudo dnf install openssh-askpass` (in `install.sh`'s package list; run
-`./install.sh` or install it directly).
+(`~/.profile` is used rather than `~/.bashrc.d/` because it must reach the *whole session*,
+not just interactive bash. Bash logins read `~/.bash_profile`, so creating `~/.profile`
+doesn't change shell behaviour.)
+
+**First use.** gnome-keyring auto-loads the public half of every key under `~/.ssh` (here,
+13 `ssh-rsa` keys — see them with `ssh-add -l`); the private key is unlocked on first actual
+use. At that point gnome-keyring pops its **gcr prompter** (`/usr/libexec/gcr-prompter`) with
+an "automatically unlock … whenever I'm logged in" checkbox — tick it and the passphrase is
+written to the Login keyring, so that key never prompts again, including after a reboot.
+
+**Dark theme.** `gcr-prompter` is a GTK3 app, and under i3 there's no settings daemon
+broadcasting the dark preference over XSettings, so GTK3 apps render light against the dark
+session (the same problem deadd has). Rather than the per-app `GTK_THEME` wrapper used for
+deadd, this is fixed *globally* and properly: **`dotfiles/gtk-3.0/settings.ini`** (→
+`~/.config/gtk-3.0/settings.ini`) sets `gtk-application-prefer-dark-theme=1`, which every
+GTK3 app honours. GTK4/libadwaita apps instead follow the gsettings `color-scheme`, which
+`install.sh`'s `configure_gtk_dark` sets to `prefer-dark`.
+
+**`~/.ssh/config` note.** It's deliberately NOT version-controlled (it lists internal
+hostnames/IPs). It still carries `AddKeysToAgent yes` from the earlier OpenSSH-agent
+approach; that's now a harmless no-op (gnome-keyring auto-loads keys itself) and is left in
+place.
+
+**Requires:** `gnome-keyring` + `gcr` (both in `install.sh`'s package list; normally already
+present from gdm/GNOME).
+
+> **Transitional:** the earlier OpenSSH-agent helpers — `openssh-askpass`,
+> `dotfiles/bashrc.d/ssh-askpass.sh`, and `bin/ssh-askpass-dark` — are superseded by the
+> above and will be removed once the gnome-keyring approach is confirmed across a reboot.
 
 ## Terminal (Ptyxis)
 
@@ -1027,7 +1049,10 @@ just toggles `pactl set-source-mute` directly.
 
 ## Follow-ups / ideas
 
-- _(none open)_
+- **Verify gnome-keyring SSH across a reboot, then retire the old askpass bits.** Confirm the
+  gcr prompt appears, stores the passphrase, and stays silent after a reboot; then remove
+  `openssh-askpass` (from `install.sh`), `dotfiles/bashrc.d/ssh-askpass.sh`, and
+  `bin/ssh-askpass-dark`. See "SSH agent / passphrase caching".
 
 ---
 
@@ -1353,3 +1378,16 @@ just toggles `pactl set-source-mute` directly.
   derived files were left unheadered (`xscreensaver`, the i3 config, both polybar files, the
   rofi theme, the arandr `.desktop`). All touched scripts still pass `bash -n`/`py_compile`/
   `perl -c`/shellcheck.
+- **2026-10-01** — Switched SSH from the per-session OpenSSH `ssh-agent` to **gnome-keyring's
+  ssh-agent** for cross-reboot "enter once, ever" passphrase caching (the old machine's model).
+  Traced the current agent to Fedora's `xinitrc-common` session wrapper; found gnome-keyring
+  was running `secrets` only (the `ssh` component's autostart is `OnlyShowIn=GNOME`, skipped
+  under i3). New **`dotfiles/profile`** (→ `~/.profile`, sourced by `xinitrc-common` before i3
+  and before its agent block) starts the `ssh` component and exports `SSH_AUTH_SOCK`, which also
+  suppresses the redundant OpenSSH agent. Verified live: socket at `…/keyring/ssh`, all 13 RSA
+  keys listed via `ssh-add -l`. Also added a **global GTK dark fix** so the gcr prompter renders
+  dark — `dotfiles/gtk-3.0/settings.ini` (`gtk-application-prefer-dark-theme=1`) plus
+  `install.sh` setting the gsettings `color-scheme` to `prefer-dark` for GTK4. `install.sh`
+  gained `gnome-keyring`/`gcr` and the two symlinks. shellcheck clean. _Pending:_ confirm the
+  gcr prompt + store works and survives a reboot, then retire `openssh-askpass`,
+  `bashrc.d/ssh-askpass.sh`, and `bin/ssh-askpass-dark`.

@@ -77,8 +77,13 @@ PACKAGES=(
   # "Power menu / System mode" in i3-setup.md.
   zenity
 
-  # GUI SSH passphrase prompt (gnome-ssh-askpass). Paired with SSH_ASKPASS_REQUIRE
-  # in dotfiles/bashrc.d/ssh-askpass.sh. See "SSH agent / passphrase caching" in i3-setup.md.
+  # SSH agent + GUI passphrase prompt. gnome-keyring provides the session
+  # ssh-agent (enabled via dotfiles/profile); gcr provides the gcr-prompter dialog
+  # it pops on first key use. See "SSH agent / passphrase caching" in i3-setup.md.
+  gnome-keyring gcr
+
+  # Legacy GUI askpass (gnome-ssh-askpass), used by the now-superseded
+  # dotfiles/bashrc.d/ssh-askpass.sh. Retained until that drop-in is retired.
   openssh-askpass
 
   # Perl modules used by i3-rename-workspace.
@@ -115,6 +120,17 @@ link() {
 
 create_symlinks() {
   echo ">> Creating symlinks..."
+
+  # Session-wide environment (~/.profile), sourced by the X session before i3.
+  # Switches SSH over to gnome-keyring's agent. See "SSH agent / passphrase
+  # caching" in i3-setup.md.
+  link "$REPO/dotfiles/profile" "$HOME/.profile"
+
+  # GTK3 dark preference. Under i3 there's no settings daemon broadcasting the
+  # dark color-scheme over XSettings, so GTK3 apps (e.g. the gcr passphrase
+  # prompter) render light unless told here. GTK4/libadwaita apps instead follow
+  # the gsettings color-scheme set by configure_gtk_dark.
+  link "$REPO/dotfiles/gtk-3.0/settings.ini" "$HOME/.config/gtk-3.0/settings.ini"
 
   # i3 config
   link "$REPO/dotfiles/i3/config" "$HOME/.config/i3/config"
@@ -235,6 +251,21 @@ disable_pcspkr_beep() {
 }
 
 #-----------------------------------------------------------------------------#
+# 7. GTK dark theme (GTK4 / libadwaita)
+#-----------------------------------------------------------------------------#
+
+# GTK4/libadwaita apps follow the gsettings color-scheme, not the GTK3
+# settings.ini linked in create_symlinks. Set it to prefer-dark so the whole
+# session is consistently dark. Idempotent; a no-op if already set or if
+# gsettings isn't available.
+configure_gtk_dark() {
+  if command -v gsettings >/dev/null 2>&1; then
+    echo ">> Setting GTK color-scheme to prefer-dark..."
+    gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark' 2>/dev/null || true
+  fi
+}
+
+#-----------------------------------------------------------------------------#
 # main
 #-----------------------------------------------------------------------------#
 
@@ -246,6 +277,7 @@ main() {
     disable_pcspkr_beep
   fi
   create_symlinks
+  configure_gtk_dark
   install_deadd_binary
   echo
   echo ">> Done. Log out, then pick the 'i3' session at the gdm login screen."

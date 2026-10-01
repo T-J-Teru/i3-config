@@ -1,0 +1,49 @@
+# shellcheck shell=sh
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#
+# ~/.profile -- session-wide environment for the X session.
+#
+# Fedora's /etc/X11/xinit/xinitrc-common sources this early -- before it would
+# otherwise start an ssh-agent, and before i3 -- so exports here are inherited by
+# i3 and everything it launches, GUI programs and shells alike. Keep it POSIX sh:
+# it is sourced by /bin/sh, not bash. (Interactive bash uses ~/.bash_profile and
+# does not read this file, which is fine: the X session is what needs these.)
+#
+# See "SSH agent / passphrase caching" in ~/Documents/Machine-Setup/i3-setup.md.
+
+# Use gnome-keyring's ssh-agent as the session's SSH agent.
+#
+# The gnome-keyring daemon is already running: PAM starts its 'secrets' component
+# at login and unlocks the Login keyring with the login password. Here we also
+# start its 'ssh' component and point SSH_AUTH_SOCK at the resulting socket. Two
+# things follow:
+#   * every program in the session talks to gnome-keyring's agent, which stores a
+#     key's passphrase in the Login keyring on first use -- so a key is unlocked
+#     once and then stays unlocked across logins and reboots (no re-entry per
+#     session, which is what the plain OpenSSH agent required); and
+#   * because SSH_AUTH_SOCK is now set, xinitrc-common's own ssh-agent block
+#     (guarded on SSH_AUTH_SOCK being empty) skips starting a redundant agent.
+if [ -n "$XDG_RUNTIME_DIR" ] && command -v gnome-keyring-daemon >/dev/null 2>&1; then
+    eval "$(gnome-keyring-daemon --start --components=ssh 2>/dev/null)"
+    : "${SSH_AUTH_SOCK:=$XDG_RUNTIME_DIR/keyring/ssh}"
+    export SSH_AUTH_SOCK
+
+    # Let D-Bus/systemd-activated GUI programs -- notably the gcr passphrase
+    # prompter gnome-keyring pops on first key use -- inherit the agent socket and
+    # the X display, so the dialog can appear and reach the agent.
+    if command -v dbus-update-activation-environment >/dev/null 2>&1; then
+        dbus-update-activation-environment --systemd SSH_AUTH_SOCK DISPLAY XAUTHORITY 2>/dev/null
+    fi
+fi
