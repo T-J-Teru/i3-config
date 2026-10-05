@@ -1,11 +1,11 @@
 # XScreenSaver Preferences File
-# Written by xscreensaver-settings 6.16-1.fc44 for aburgess on Wed Sep 30 16:21:04 2026.
+# Written by xscreensaver-settings 6.16-1.fc44 for aburgess on Mon Oct  5 16:32:24 2026.
 # https://www.jwz.org/xscreensaver/
 
 timeout:	0:10:00
 cycle:		0:10:00
 lock:		True
-lockTimeout:	0:00:00
+lockTimeout:	0:01:00
 passwdTimeout:	0:00:15
 visualID:	default
 installColormap:    True
@@ -37,7 +37,7 @@ textFile:	/etc/fedora-release
 textProgram:	fortune -s
 textURL:	http://planet.fedoraproject.org/rss20.xml
 dialogTheme:	default
-settingsGeom:	310,199 -1,-1
+settingsGeom:	1920,80 -1,-1
 
 programs:								      \
 				maze --root				    \n\
@@ -80,8 +80,8 @@ programs:								      \
 				strange --root				    \n\
 				swirl --root				    \n\
 				triangle --root				    \n\
-				xjack --root				    \n\
-				xlyap --root				    \n\
+-				xjack --root				    \n\
+-				xlyap --root				    \n\
 -				bsod --root				    \n\
 -				crystal --root				    \n\
 				cynosure --root				    \n\
@@ -110,8 +110,8 @@ programs:								      \
 				spotlight --root			    \n\
 				squiral --root				    \n\
 				wander --root				    \n\
-				xflame --root				    \n\
-				xmatrix --root				    \n\
+-				xflame --root				    \n\
+-				xmatrix --root				    \n\
 -				nerverot --root				    \n\
 				xrayswarm --root			    \n\
 				xspirograph --root			    \n\
@@ -120,7 +120,7 @@ programs:								      \
 				speedmine --root			    \n\
 				vermiculate --root			    \n\
 				whirlwindwarp --root			    \n\
-				zoom --root				    \n\
+-				zoom --root				    \n\
 				anemone --root				    \n\
 -				apollonian --root			    \n\
 				euler2d --root				    \n\
@@ -137,7 +137,7 @@ programs:								      \
 				piecewise --root			    \n\
 				pong --root				    \n\
 				popsquares --root			    \n\
-				xanalogtv --root			    \n\
+-				xanalogtv --root			    \n\
 				abstractile --root			    \n\
 				anemotaxis --root			    \n\
 				fireworkx --root			    \n\
@@ -159,7 +159,7 @@ programs:								      \
 				tessellimage --root			    \n\
 -				filmleader --root			    \n\
 -				glitchpeg --root			    \n\
-				vfeedback --root			    \n\
+-				vfeedback --root			    \n\
 				binaryhorizon --root			    \n\
 -				marbling --root				    \n\
 				droste --root				    \n\
@@ -240,7 +240,7 @@ programs:								      \
   GL: 				glcells --root				    \n\
   GL: 				lockward --root				    \n\
   GL: 				moebiusgears --root			    \n\
-  GL: 				voronoi --root				    \n\
+- GL: 				voronoi --root				    \n\
   GL: 				hypnowheel --root			    \n\
   GL: 				klein --root				    \n\
   GL: 				photopile --root			    \n\
@@ -277,10 +277,10 @@ programs:								      \
   GL: 				hydrostat --root			    \n\
   GL: 				raverhoop --root			    \n\
   GL: 				splodesic --root			    \n\
-  GL: 				unicrud --root				    \n\
+- GL: 				unicrud --root				    \n\
   GL: 				esper --root				    \n\
   GL: 				prococean --root			    \n\
-  GL: 				vigilance --root			    \n\
+- GL: 				vigilance --root			    \n\
   GL: 				crumbler --root				    \n\
 - GL: 				handsy --root				    \n\
   GL: 				maze3d --root				    \n\
@@ -316,7 +316,7 @@ programs:								      \
   GL: 				kallisti --root				    \n\
   GL: 				klondike --root				    \n\
   GL: 				selfreflect --root			    \n\
-  GL: 				truchetzoom --root			    \n\
+- GL: 				truchetzoom --root			    \n\
   GL: 				bestill --root				    \n\
   GL: 				bubblecolors --root			    \n\
   GL: 				darktransit --root			    \n\
@@ -332,7 +332,7 @@ programs:								      \
   GL: 				amigajuggler --root			    \n\
 - GL: 				floppy --root				    \n\
 - GL: 				graphstat --root			    \n\
-  GL: 				worldpieces --root			    \n\
+- GL: 				worldpieces --root			    \n\
 
 
 pointerHysteresis:  10
