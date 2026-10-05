@@ -291,6 +291,27 @@ present from gdm/GNOME).
 > with `GTK_THEME=Adwaita:dark` wrapping). That gave "once per session" caching but not
 > across reboots, and has been removed in favour of the gnome-keyring approach above.
 
+## polkit agent
+
+GNOME runs a polkit **authentication agent** as part of the desktop; i3 does not.
+Without one, any GUI action that asks polkit to authenticate the user fails outright
+-- e.g. `virt-manager` connecting to `qemu:///system` dies with *"no polkit agent
+available to authenticate action 'org.libvirt.unix.manage'"*. (`polkitd`, the daemon,
+is running; what's missing is the per-session agent that shows the auth dialog.)
+
+The fix is to start an agent from the i3 config. Fedora dropped `polkit-gnome`, so we
+use **`mate-polkit`** (the GTK agent), launched alongside `nm-applet`:
+
+```
+exec --no-startup-id /usr/libexec/polkit-mate-authentication-agent-1
+```
+
+Note for libvirt specifically: Fedora's `/usr/share/polkit-1/rules.d/50-libvirt.rules`
+grants `org.libvirt.unix.manage` to members of the **`libvirt`** group with no password
+(and no agent needed). So for passwordless VM management, also add yourself to that
+group: `sudo usermod -aG libvirt "$USER"` and re-login. The agent still matters for
+*other* actions that genuinely require interactive authentication.
+
 ## Terminal (Ptyxis)
 
 Fedora 44 Workstation no longer ships `gnome-terminal` by default; its default terminal
@@ -1405,3 +1426,11 @@ just toggles `pactl set-source-mute` directly.
   `~/Documents/Machine-Setup` references (README quick-start, this document's layout/examples,
   and the `install.sh`/`dotfiles/profile` comments) with the GitHub repo name `i3-config` and
   repo-relative (`$PWD`) paths; noted that moving the repo just needs `./install.sh --links`.
+- **2026-10-05** — Added a **polkit authentication agent** to the i3 session. i3 (unlike
+  GNOME) starts none, so `virt-manager` failed with "no polkit agent available to
+  authenticate action 'org.libvirt.unix.manage'". Fedora no longer ships `polkit-gnome`,
+  so `install.sh` now installs **`mate-polkit`** and the i3 config execs
+  `/usr/libexec/polkit-mate-authentication-agent-1` next to `nm-applet`. Documented that
+  libvirt system management is passwordless for members of the `libvirt` group
+  (`50-libvirt.rules`), so joining that group is the complementary fix. i3 config passes
+  `i3 -C`; install.sh shellcheck-clean.

@@ -82,6 +82,12 @@ PACKAGES=(
   # it pops on first key use. See "SSH agent / passphrase caching" in i3-setup.md.
   gnome-keyring gcr
 
+  # polkit authentication agent (started from the i3 config). i3 starts no polkit
+  # agent of its own, so GUI actions needing authorisation -- e.g. virt-manager's
+  # qemu:///system -- fail with "no polkit agent available" without this. mate-polkit
+  # is the GTK agent (Fedora dropped polkit-gnome). See "polkit agent" in i3-setup.md.
+  mate-polkit
+
   # Perl modules used by i3-rename-workspace.
   perl-indirect perl-JSON-Parse perl-Carp-Assert
 

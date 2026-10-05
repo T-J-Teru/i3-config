@@ -75,6 +75,12 @@ bindsym $mod+Escape exec --no-startup-id i3-power-menu
 # and nm-applet is a desktop environment-independent system tray GUI for it.
 exec --no-startup-id nm-applet
 
+# polkit authentication agent. Unlike GNOME, i3 starts no polkit agent, so GUI
+# actions that need authorisation (virt-manager's system libvirt, some mounts,
+# etc.) fail with "no polkit agent available". mate-polkit provides the auth
+# dialog. See "polkit agent" in i3-setup.md.
+exec --no-startup-id /usr/libexec/polkit-mate-authentication-agent-1
+
 # Volume: i3-osd adjusts the volume AND shows a deadd on-screen display (a progress
 # bar that updates in place on repeated presses). See "Volume / brightness OSD" in
 # i3-setup.md. (polybar's pulseaudio module updates itself, so no i3status refresh.)
