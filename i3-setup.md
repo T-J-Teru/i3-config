@@ -312,29 +312,29 @@ grants `org.libvirt.unix.manage` to members of the **`libvirt`** group with no p
 group: `sudo usermod -aG libvirt "$USER"` and re-login. The agent still matters for
 *other* actions that genuinely require interactive authentication.
 
-## Terminal (Ptyxis)
+## Terminal (alacritty)
 
-Fedora 44 Workstation no longer ships `gnome-terminal` by default; its default terminal
-is **Ptyxis** (`/usr/bin/ptyxis`, the modern GNOME terminal). It was already installed.
-
-The problem: i3's default `Mod+Return` runs `i3-sensible-terminal`, which doesn't know
-about Ptyxis and falls back down its list to plain **urxvt** (also installed) — an ugly,
-unconfigured terminal. We bound Ptyxis explicitly instead:
+`Mod+Return` opens **alacritty** (`/usr/bin/alacritty`): a fast, GPU-accelerated
+terminal with clean antialiased fonts and truecolor, and -- crucially under i3 -- **no
+client-side headerbar**, so it honours the i3 border.
 
 ```
-set $term ptyxis
+set $term alacritty
 bindsym $mod+Return exec --no-startup-id $term
 ```
 
-Ptyxis runs fine under i3 (it uses a D-Bus-activated `ptyxis-agent`; no GNOME session
-needed). `gnome-terminal` also still works under i3 if ever wanted (`sudo dnf install
-gnome-terminal`), but Ptyxis is the current, already-present equivalent.
+alacritty has no tabs or splits by design; tmux (see the shell-config repo) provides
+multiplexing. It runs fine on its default config; a themed `alacritty.toml` could be
+added and symlinked later if wanted.
 
-**Important: `--new-window` is required.** Ptyxis is a single-instance app, so a bare
-`ptyxis` just raises the already-open window instead of opening a new terminal. The
-binding uses `--new-window` so each Mod+Return spawns a fresh window for i3 to tile.
-(`-s`/`--standalone` would also work but starts a whole separate instance — heavier and
-with unsynced settings; `--new-window` is preferred.)
+**History.** Earlier iterations used Fedora's default terminal, **Ptyxis** (the modern
+GTK4/libadwaita GNOME terminal, bound with `--new-window` since it's single-instance).
+Ptyxis runs under i3, but it draws its own client-side headerbar/tab bar that i3 can't
+remove -- there's no option to hide it (confirmed in Ptyxis 50.1: no gsettings key or
+CLI flag) -- so we moved to alacritty for a cleaner, borderless-under-i3 look. Before
+Ptyxis the stop-gap was plain unconfigured **urxvt** via `i3-sensible-terminal` (an ugly
+bitmap font); urxvt now survives only as the *styled* qalc scratchpad (see "Scratchpad",
+where `-fn xft:…`, dark colours, padding and `+sb` make it look modern).
 
 ## Status bar (polybar)
 
@@ -1434,3 +1434,8 @@ just toggles `pactl set-source-mute` directly.
   libvirt system management is passwordless for members of the `libvirt` group
   (`50-libvirt.rules`), so joining that group is the complementary fix. i3 config passes
   `i3 -C`; install.sh shellcheck-clean.
+- **2026-10-05** — Switched the `$mod+Return` terminal from **Ptyxis** to **alacritty**.
+  Ptyxis (GTK4/libadwaita) draws a client-side headerbar i3 can't remove and offers no
+  option to hide it (Ptyxis 50.1); alacritty is fast, modern-looking, and borderless
+  under i3 (no CSD), pairing with tmux for multiplexing. `install.sh` now installs
+  `alacritty`; the i3 config's `set $term` points at it. i3 config passes `i3 -C`.

@@ -119,11 +119,10 @@ floating_modifier $mod
 tiling_drag modifier titlebar
 
 # start a terminal
-# Ptyxis is Fedora's default GNOME terminal (installed). i3-sensible-terminal would
-# otherwise fall back to plain urxvt, so bind Ptyxis explicitly. See i3-setup.md.
-# --new-window is required: Ptyxis is single-instance, so a bare `ptyxis` just raises
-# the existing window instead of opening a new one. --new-window spawns a fresh window.
-set $term ptyxis --new-window
+# alacritty: a fast, GPU-accelerated terminal with clean antialiased fonts and no
+# client-side headerbar, so it honours the i3 border (unlike Ptyxis, GTK4/CSD).
+# It has no tabs/splits by design -- tmux handles multiplexing. See i3-setup.md.
+set $term alacritty
 bindsym $mod+Return exec --no-startup-id $term
 
 # kill focused window

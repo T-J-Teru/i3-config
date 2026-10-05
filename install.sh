@@ -55,6 +55,10 @@ PACKAGES=(
   # Launcher / window & workspace switcher.
   rofi
 
+  # Main terminal, bound to $mod+Return. Fast, GPU-accelerated, no client-side
+  # headerbar (honours the i3 border). See "Terminal (alacritty)" in i3-setup.md.
+  alacritty
+
   # Calculator scratchpad: qalc (Qalculate! CLI) runs inside a urxvt terminal that
   # i3 keeps in its scratchpad. See "Scratchpad (qalc calculator)" in i3-setup.md.
   qalculate rxvt-unicode
