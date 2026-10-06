@@ -59,6 +59,12 @@ PACKAGES=(
   # headerbar (honours the i3 border). See "Terminal (alacritty)" in i3-setup.md.
   alacritty
 
+  # This used to be my main terminal.  It has a nice grouping feature
+  # where input can be mirrored between multiple open terminals, which
+  # can be nice for side by side debug.  However, I don't use this
+  # feature much any more, so I'm experimenting with alacritty for now.
+  terminator
+
   # Calculator scratchpad: qalc (Qalculate! CLI) runs inside a urxvt terminal that
   # i3 keeps in its scratchpad. See "Scratchpad (qalc calculator)" in i3-setup.md.
   qalculate rxvt-unicode
