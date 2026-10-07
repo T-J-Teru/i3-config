@@ -52,6 +52,11 @@ PACKAGES=(
   # Font Awesome 6 Free (Solid). Nerd Fonts aren't packaged in Fedora repos.
   fontawesome-6-free-fonts
 
+  # Monospace font set as the GNOME system monospace (see configure_desktop_gsettings);
+  # used by terminator and other GTK apps, and alacritty's default resolves to it too.
+  # Normally pulled in by Fedora's default-fonts-*-mono, listed here to be explicit.
+  google-noto-sans-mono-vf-fonts
+
   # Launcher / window & workspace switcher.
   rofi
 
@@ -141,7 +146,7 @@ create_symlinks() {
   # GTK3 dark preference. Under i3 there's no settings daemon broadcasting the
   # dark color-scheme over XSettings, so GTK3 apps (e.g. the gcr passphrase
   # prompter) render light unless told here. GTK4/libadwaita apps instead follow
-  # the gsettings color-scheme set by configure_gtk_dark.
+  # the gsettings color-scheme set by configure_desktop_gsettings.
   link "$REPO/dotfiles/gtk-3.0/settings.ini" "$HOME/.config/gtk-3.0/settings.ini"
 
   # i3 config
@@ -256,17 +261,20 @@ disable_pcspkr_beep() {
 }
 
 #-----------------------------------------------------------------------------#
-# 7. GTK dark theme (GTK4 / libadwaita)
+# 7. Desktop-interface gsettings (dark theme + fonts)
 #-----------------------------------------------------------------------------#
 
-# GTK4/libadwaita apps follow the gsettings color-scheme, not the GTK3
-# settings.ini linked in create_symlinks. Set it to prefer-dark so the whole
-# session is consistently dark. Idempotent; a no-op if already set or if
-# gsettings isn't available.
-configure_gtk_dark() {
+# GTK4/libadwaita apps follow org.gnome.desktop.interface gsettings, not the GTK3
+# settings.ini linked in create_symlinks. Set:
+#   * color-scheme = prefer-dark, so the whole session is consistently dark;
+#   * monospace-font-name = Noto Sans Mono, so GTK terminals (terminator) and
+#     other apps match alacritty's default font.
+# Idempotent; a no-op if already set or if gsettings isn't available.
+configure_desktop_gsettings() {
   if command -v gsettings >/dev/null 2>&1; then
-    echo ">> Setting GTK color-scheme to prefer-dark..."
+    echo ">> Setting GTK color-scheme (prefer-dark) and monospace font..."
     gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark' 2>/dev/null || true
+    gsettings set org.gnome.desktop.interface monospace-font-name 'Noto Sans Mono 11' 2>/dev/null || true
   fi
 }
 
@@ -282,7 +290,7 @@ main() {
     disable_pcspkr_beep
   fi
   create_symlinks
-  configure_gtk_dark
+  configure_desktop_gsettings
   install_deadd_binary
   echo
   echo ">> Done. Log out, then pick the 'i3' session at the gdm login screen."

@@ -276,7 +276,13 @@ session (the same problem deadd has). Rather than the per-app `GTK_THEME` wrappe
 deadd, this is fixed *globally* and properly: **`dotfiles/gtk-3.0/settings.ini`** (→
 `~/.config/gtk-3.0/settings.ini`) sets `gtk-application-prefer-dark-theme=1`, which every
 GTK3 app honours. GTK4/libadwaita apps instead follow the gsettings `color-scheme`, which
-`install.sh`'s `configure_gtk_dark` sets to `prefer-dark`.
+`install.sh`'s `configure_desktop_gsettings` sets to `prefer-dark`.
+
+That same function also sets `org.gnome.desktop.interface monospace-font-name` to
+**`Noto Sans Mono 11`**, so GTK terminals (e.g. terminator) and other apps that use the
+"system monospace" match alacritty, whose default `monospace` already resolves to Noto
+Sans Mono via fontconfig. The font is `google-noto-sans-mono-vf-fonts` (added to the
+package list; normally pulled in by Fedora's `default-fonts-*-mono` anyway).
 
 **`~/.ssh/config` note.** It's deliberately NOT version-controlled (it lists internal
 hostnames/IPs). It still carries `AddKeysToAgent yes` from the earlier OpenSSH-agent
@@ -1439,3 +1445,8 @@ just toggles `pactl set-source-mute` directly.
   option to hide it (Ptyxis 50.1); alacritty is fast, modern-looking, and borderless
   under i3 (no CSD), pairing with tmux for multiplexing. `install.sh` now installs
   `alacritty`; the i3 config's `set $term` points at it. i3 config passes `i3 -C`.
+- **2026-10-07** — Set the GNOME system monospace font to **Noto Sans Mono 11** via
+  `install.sh` (renamed `configure_gtk_dark` → `configure_desktop_gsettings`, which now sets
+  both `color-scheme` and `monospace-font-name`). This makes GTK terminals (terminator) and
+  other apps match alacritty, whose default font resolves to Noto Sans Mono. Added
+  `google-noto-sans-mono-vf-fonts` to the package list so the selected font is guaranteed.
