@@ -207,6 +207,14 @@ bindsym $mod+Shift+x exec --no-startup-id xscreensaver-command -lock
 - **Suspend locking is handled automatically:** xscreensaver 6.x spawns
   `xscreensaver-systemd`, which locks before suspend/hibernate via logind. This is why
   `xss-lock` was not needed.
+- **Unlock-dialog placement after suspend:** xscreensaver draws its unlock dialog on the
+  monitor the mouse pointer is on. On resume the external monitor is often still asleep, so
+  if the pointer was there the dialog is invisible. `bin/i3-exit`'s `lock()` therefore warps
+  the pointer to the laptop's built-in panel (via `xdotool`, targeting the `eDP*`/`LVDS*`
+  output, falling back to the primary) just before locking, so the dialog lands on a screen
+  that's awake. This covers the System-mode `lock` and the `suspend`/`hibernate` paths that
+  call `i3-exit`; the bare `Mod+Shift+x` binding runs `xscreensaver-command -lock` directly
+  and does not warp.
 
 **`~/.xscreensaver` is version-controlled.** It's a home-root dotfile (not under
 `~/.config`), tracked as `dotfiles/xscreensaver/xscreensaver` and symlinked to
@@ -1450,3 +1458,9 @@ just toggles `pactl set-source-mute` directly.
   both `color-scheme` and `monospace-font-name`). This makes GTK terminals (terminator) and
   other apps match alacritty, whose default font resolves to Noto Sans Mono. Added
   `google-noto-sans-mono-vf-fonts` to the package list so the selected font is guaranteed.
+- **2026-10-12** — `i3-exit` now warps the mouse pointer to the laptop's built-in panel
+  (`eDP*`/`LVDS*`, via `xdotool`) in `lock()` before calling `xscreensaver-command -lock`.
+  xscreensaver shows its unlock dialog on the pointer's monitor, and after suspend the
+  external monitor is often still asleep -- so if the pointer had been there the dialog was
+  invisible. Added `xdotool` to the package list. Covers the System-mode lock and
+  suspend/hibernate paths (not the bare `Mod+Shift+x` binding). i3-exit shellcheck-clean.

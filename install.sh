@@ -78,6 +78,11 @@ PACKAGES=(
   # arandr pulls in xrandr as a dependency. See "Monitor layout" in i3-setup.md.
   arandr autorandr
 
+  # Warp the mouse pointer to the laptop panel before locking (i3-exit lock), so
+  # xscreensaver's unlock dialog lands on a monitor that's awake. See "Power menu
+  # / System mode" in i3-setup.md.
+  xdotool
+
   # Display backlight control, bound to the brightness keys in the i3 config.
   brightnessctl
 

@@ -22,7 +22,36 @@
 # Called from the i3 config's `mode "$mode_system"` block. See "Power menu /
 # System mode" in i3-setup.md.
 
+# Move the mouse pointer to the centre of the laptop's built-in panel (eDP*/LVDS*),
+# falling back to the xrandr primary, then the first connected output. No-op if
+# xdotool, xrandr, or a usable output isn't available.
+warp_pointer_to_laptop() {
+    command -v xdotool >/dev/null 2>&1 || return 0
+    command -v xrandr  >/dev/null 2>&1 || return 0
+
+    local geom rest w h x y
+    # Prefer the internal laptop panel by name.
+    geom=$(xrandr --query 2>/dev/null \
+             | awk '/^(eDP|LVDS)[^ ]* connected/ {for (i=1;i<=NF;i++) if ($i ~ /^[0-9]+x[0-9]+\+[0-9]+\+[0-9]+$/) {print $i; exit}}')
+    # Fall back to the primary output, then any connected output with a geometry.
+    [ -n "$geom" ] || geom=$(xrandr --query 2>/dev/null | awk '/ connected primary / {print $4; exit}')
+    [ -n "$geom" ] || geom=$(xrandr --query 2>/dev/null \
+             | awk '/ connected/ {for (i=1;i<=NF;i++) if ($i ~ /^[0-9]+x[0-9]+\+[0-9]+\+[0-9]+$/) {print $i; exit}}')
+    [ -n "$geom" ] || return 0
+
+    # geom is WxH+X+Y -- warp to its centre.
+    w=${geom%%x*}; rest=${geom#*x}
+    h=${rest%%+*}; rest=${rest#*+}
+    x=${rest%%+*}; y=${rest#*+}
+    xdotool mousemove $(( x + w / 2 )) $(( y + h / 2 ))
+}
+
 lock() {
+    # xscreensaver draws its unlock dialog on the monitor the mouse pointer is on.
+    # After suspend the external monitor is often still asleep when we return to
+    # unlock, so warp the pointer onto the laptop's built-in panel first -- then the
+    # unlock dialog lands on a screen that's actually awake.
+    warp_pointer_to_laptop
     xscreensaver-command -lock
 }
 
