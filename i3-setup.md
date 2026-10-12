@@ -746,7 +746,9 @@ Notes / fixes applied:
 - **`i3-pdf-select`**: had a hardcoded `docroot=/home/andrew/Documents/` → changed to
   `${HOME}/Documents/`. It called **`evince`**, which Fedora 44 replaced with **`papers`**
   (evince's successor) → switched to `papers` (added to `install.sh`). Uses the built-in
-  rofi `arthur` theme in dmenu mode.
+  rofi `arthur` theme in dmenu mode. `install.sh` also makes Papers the default PDF handler
+  for `xdg-open` (`configure_default_apps`: `xdg-mime default org.gnome.Papers.desktop
+  application/pdf`), since otherwise Google Chrome had registered itself as the handler.
 - **`i3-toggle-selected-output`**: uses `python3-i3ipc` (already installed); shebang
   `#! /bin/env python3` works. No changes needed.
 - **`i3-toggl-select`** (Toggl time-tracker switcher): **dropped.** It depended on a
@@ -1468,3 +1470,7 @@ just toggles `pactl set-source-mute` directly.
 - **2026-10-12** — Routed the `Mod+Shift+x` lock binding through `i3-exit lock` (was calling
   `xscreensaver-command -lock` directly), so the pointer-warp-to-laptop-panel applies to the
   on-demand lock too. Now every lock path goes through `i3-exit`.
+- **2026-10-12** — Made **Papers** the default PDF viewer for `xdg-open`. Google Chrome had
+  registered itself as the `application/pdf` handler, so `xdg-open file.pdf` opened a full
+  browser. `install.sh` now runs `xdg-mime default org.gnome.Papers.desktop application/pdf`
+  (new `configure_default_apps`), writing `~/.config/mimeapps.list`.

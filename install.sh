@@ -284,6 +284,20 @@ configure_desktop_gsettings() {
 }
 
 #-----------------------------------------------------------------------------#
+# 8. Default applications
+#-----------------------------------------------------------------------------#
+
+# Make xdg-open use the GNOME document viewer (Papers, the evince successor -- the
+# 'papers' package above) for PDFs, rather than whatever registered itself as the
+# handler (Google Chrome, on this machine). Writes ~/.config/mimeapps.list.
+configure_default_apps() {
+  if command -v xdg-mime >/dev/null 2>&1; then
+    echo ">> Setting Papers as the default PDF viewer..."
+    xdg-mime default org.gnome.Papers.desktop application/pdf 2>/dev/null || true
+  fi
+}
+
+#-----------------------------------------------------------------------------#
 # main
 #-----------------------------------------------------------------------------#
 
@@ -296,6 +310,7 @@ main() {
   fi
   create_symlinks
   configure_desktop_gsettings
+  configure_default_apps
   install_deadd_binary
   echo
   echo ">> Done. Log out, then pick the 'i3' session at the gdm login screen."
