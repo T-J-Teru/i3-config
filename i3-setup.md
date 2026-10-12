@@ -197,11 +197,12 @@ The following lines are in the i3 config:
 
 ```
 exec --no-startup-id xscreensaver -no-splash
-bindsym $mod+Shift+x exec --no-startup-id xscreensaver-command -lock
+bindsym $mod+Shift+x exec --no-startup-id i3-exit lock
 ```
 
 - `xscreensaver -no-splash` starts the daemon (idle screensaver + idle-timeout lock).
-- **Mod+Shift+x** locks on demand (`xscreensaver-command -lock`). Mod = Super/Win key.
+- **Mod+Shift+x** locks on demand. It runs `i3-exit lock` (not `xscreensaver-command`
+  directly) so the pointer-warp below applies here too. Mod = Super/Win key.
 - Configure idle timeout, whether to lock, and which savers run via
   `xscreensaver-settings` (GUI) — it writes `~/.xscreensaver`.
 - **Suspend locking is handled automatically:** xscreensaver 6.x spawns
@@ -212,9 +213,9 @@ bindsym $mod+Shift+x exec --no-startup-id xscreensaver-command -lock
   if the pointer was there the dialog is invisible. `bin/i3-exit`'s `lock()` therefore warps
   the pointer to the laptop's built-in panel (via `xdotool`, targeting the `eDP*`/`LVDS*`
   output, falling back to the primary) just before locking, so the dialog lands on a screen
-  that's awake. This covers the System-mode `lock` and the `suspend`/`hibernate` paths that
-  call `i3-exit`; the bare `Mod+Shift+x` binding runs `xscreensaver-command -lock` directly
-  and does not warp.
+  that's awake. All lock paths go through `i3-exit` -- the System-mode `lock`, the
+  `suspend`/`hibernate` actions, and the `Mod+Shift+x` binding -- so the warp applies to
+  every on-demand lock.
 
 **`~/.xscreensaver` is version-controlled.** It's a home-root dotfile (not under
 `~/.config`), tracked as `dotfiles/xscreensaver/xscreensaver` and symlinked to
@@ -1464,3 +1465,6 @@ just toggles `pactl set-source-mute` directly.
   external monitor is often still asleep -- so if the pointer had been there the dialog was
   invisible. Added `xdotool` to the package list. Covers the System-mode lock and
   suspend/hibernate paths (not the bare `Mod+Shift+x` binding). i3-exit shellcheck-clean.
+- **2026-10-12** — Routed the `Mod+Shift+x` lock binding through `i3-exit lock` (was calling
+  `xscreensaver-command -lock` directly), so the pointer-warp-to-laptop-panel applies to the
+  on-demand lock too. Now every lock path goes through `i3-exit`.

@@ -64,8 +64,9 @@ exec_always --no-startup-id i3-wallpaper
 # ~/.xscreensaver). The daemon also starts xscreensaver-systemd, which locks the
 # screen before suspend/hibernate -- so no xss-lock is needed.
 exec --no-startup-id xscreensaver -no-splash
-# Lock the screen on demand:
-bindsym $mod+Shift+x exec --no-startup-id xscreensaver-command -lock
+# Lock the screen on demand (via i3-exit, so the pointer is warped to the laptop
+# panel first -- same as the System-mode lock; see i3-exit / i3-setup.md).
+bindsym $mod+Shift+x exec --no-startup-id i3-exit lock
 
 # Power menu (rofi): Lock / Logout / Suspend / Reboot / Shutdown. Same script the
 # polybar power glyph runs. Actions go via systemd-logind, no sudo. See i3-setup.md.
