@@ -208,6 +208,12 @@ bindsym $mod+Shift+x exec --no-startup-id i3-exit lock
 - **Suspend locking is handled automatically:** xscreensaver 6.x spawns
   `xscreensaver-systemd`, which locks before suspend/hibernate via logind. This is why
   `xss-lock` was not needed.
+- **`-suspend` vs `-lock`:** `i3-exit`'s `lock()` (on-demand lock) uses
+  `xscreensaver-command -lock`, but its `suspend`/`hibernate` actions use `-suspend`
+  instead (`lock_for_sleep()`). `-suspend` is xscreensaver's purpose-built sleep option --
+  it blanks and locks immediately, ignoring the lock-timeout grace, so the screen returns
+  properly *blanked* as well as locked on resume (with plain `-lock` the screen came back
+  locked but not blanked).
 - **Unlock-dialog placement after suspend:** xscreensaver draws its unlock dialog on the
   monitor the mouse pointer is on. On resume the external monitor is often still asleep, so
   if the pointer was there the dialog is invisible. `bin/i3-exit`'s `lock()` therefore warps
@@ -1474,3 +1480,8 @@ just toggles `pactl set-source-mute` directly.
   registered itself as the `application/pdf` handler, so `xdg-open file.pdf` opened a full
   browser. `install.sh` now runs `xdg-mime default org.gnome.Papers.desktop application/pdf`
   (new `configure_default_apps`), writing `~/.config/mimeapps.list`.
+- **2026-10-13** — `i3-exit` now uses `xscreensaver-command -suspend` (new `lock_for_sleep()`)
+  for the `suspend`/`hibernate` actions, instead of `-lock`. `-suspend` is xscreensaver's
+  sleep-path option (blanks + locks immediately, ignoring the lock-timeout), fixing the case
+  where after resume the screen was locked but not blanked. On-demand `lock()` (Mod+Shift+x,
+  System-mode lock) still uses `-lock`. Both still warp the pointer to the laptop panel.

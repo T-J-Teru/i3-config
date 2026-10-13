@@ -46,13 +46,21 @@ warp_pointer_to_laptop() {
     xdotool mousemove $(( x + w / 2 )) $(( y + h / 2 ))
 }
 
+# On-demand lock (Mod+Shift+x, System-mode lock). Warp the pointer to the laptop
+# panel first so the unlock dialog lands there (see warp_pointer_to_laptop), then
+# lock immediately.
 lock() {
-    # xscreensaver draws its unlock dialog on the monitor the mouse pointer is on.
-    # After suspend the external monitor is often still asleep when we return to
-    # unlock, so warp the pointer onto the laptop's built-in panel first -- then the
-    # unlock dialog lands on a screen that's actually awake.
     warp_pointer_to_laptop
     xscreensaver-command -lock
+}
+
+# Blank + lock in preparation for system sleep (suspend/hibernate). Use -suspend
+# rather than -lock: it's xscreensaver's purpose-built option for the sleep path,
+# blanking and locking immediately (ignoring the lock-timeout grace) so the screen
+# comes back properly blanked *and* locked on resume. Warp first, same as lock().
+lock_for_sleep() {
+    warp_pointer_to_laptop
+    xscreensaver-command -suspend
 }
 
 logout() {
@@ -83,10 +91,10 @@ case "$1" in
         confirm logout && logout
         ;;
     suspend)
-        confirm suspend && lock && systemctl suspend
+        confirm suspend && lock_for_sleep && systemctl suspend
         ;;
     hibernate)
-        confirm hibernate && lock && systemctl hibernate
+        confirm hibernate && lock_for_sleep && systemctl hibernate
         ;;
     reboot)
         confirm reboot && systemctl reboot
