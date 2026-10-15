@@ -511,12 +511,12 @@ opacity. GTK client-side-decoration shadow regions are excluded via the
 `_GTK_FRAME_EXTENTS@` selector (note: the older `@:c` type-suffix form is deprecated
 in current picom).
 
-**Rounded corners only on floating windows.** Rounding *every* window looks broken
-under i3: for a tabbed/stacked tiled container the title bar and the content get
-rounded separately, so they read as two detached boxes. We only want rounding on
-floating windows (where it looks great) and notification pop-ups. picom can't ask i3
-whether a window is floating — but **i3 sets the `I3_FLOATING_WINDOW` property
-(`CARDINAL = 1`) on floating windows' client windows**, so the
+**Rounded corners (and shadows) only on floating windows.** Rounding *every* window
+looks broken under i3: for a tabbed/stacked tiled container the title bar and the
+content get rounded separately, so they read as two detached boxes. We only want
+rounding on floating windows (where it looks great) and notification pop-ups. picom
+can't ask i3 whether a window is floating — but **i3 sets the `I3_FLOATING_WINDOW`
+property (`CARDINAL = 1`) on floating windows' client windows**, so the
 `rounded-corners-exclude` rule excludes everything that isn't tagged floating and
 isn't a notification:
 
@@ -527,6 +527,11 @@ isn't a notification:
 (The property is matched on both the client window `@` and the frame, to be robust
 about which one picom resolves. No extra daemon or package is needed — i3 provides
 the property itself.)
+
+The **same clause is in `shadow-exclude`**, for the same reason: shadows only add
+value on windows that float above something. On tiled windows (no gaps) they're
+mostly hidden behind neighbours anyway, and would show in every gap if gaps were
+ever enabled — so shadows, too, are limited to floating windows + notifications.
 
 **Dim inactive windows.** `inactive-dim = 0.5` fades every non-focused window to half
 brightness so the active one is easy to spot (measured: a window drops to exactly 0.50×
@@ -1507,3 +1512,8 @@ just toggles `pactl set-source-mute` directly.
   title bar and content separately). i3 tags floating windows with the `I3_FLOATING_WINDOW`
   property, so `rounded-corners-exclude` now excludes anything not tagged floating and not a
   notification — no daemon or extra package needed. (Thanks to the `I3_FLOATING_WINDOW` tip.)
+- **2026-10-15** — Limited picom **shadows** to floating windows + notifications too, using
+  the same `I3_FLOATING_WINDOW` clause as rounded corners. On tiled windows (no gaps) shadows
+  are mostly hidden behind neighbours anyway; this keeps the config consistent, saves a little
+  compositing work, and is future-proof if gaps are ever enabled. Blur (translucency-only),
+  fading, and inactive-dim are unchanged — they don't misbehave on tiled windows.
