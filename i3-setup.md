@@ -511,6 +511,23 @@ opacity. GTK client-side-decoration shadow regions are excluded via the
 `_GTK_FRAME_EXTENTS@` selector (note: the older `@:c` type-suffix form is deprecated
 in current picom).
 
+**Rounded corners only on floating windows.** Rounding *every* window looks broken
+under i3: for a tabbed/stacked tiled container the title bar and the content get
+rounded separately, so they read as two detached boxes. We only want rounding on
+floating windows (where it looks great) and notification pop-ups. picom can't ask i3
+whether a window is floating — but **i3 sets the `I3_FLOATING_WINDOW` property
+(`CARDINAL = 1`) on floating windows' client windows**, so the
+`rounded-corners-exclude` rule excludes everything that isn't tagged floating and
+isn't a notification:
+
+```
+"!(I3_FLOATING_WINDOW@ = 1 || I3_FLOATING_WINDOW = 1) && window_type != 'notification'"
+```
+
+(The property is matched on both the client window `@` and the frame, to be robust
+about which one picom resolves. No extra daemon or package is needed — i3 provides
+the property itself.)
+
 **Dim inactive windows.** `inactive-dim = 0.5` fades every non-focused window to half
 brightness so the active one is easy to spot (measured: a window drops to exactly 0.50×
 its focused brightness). This replaces the old machine's separate `window-dimmer` script,
@@ -1485,3 +1502,8 @@ just toggles `pactl set-source-mute` directly.
   sleep-path option (blanks + locks immediately, ignoring the lock-timeout), fixing the case
   where after resume the screen was locked but not blanked. On-demand `lock()` (Mod+Shift+x,
   System-mode lock) still uses `-lock`. Both still warp the pointer to the laptop panel.
+- **2026-10-15** — Limited picom's rounded corners to **floating windows + notifications**.
+  Rounding every window looked broken under i3 (tabbed/stacked tiled containers rounded the
+  title bar and content separately). i3 tags floating windows with the `I3_FLOATING_WINDOW`
+  property, so `rounded-corners-exclude` now excludes anything not tagged floating and not a
+  notification — no daemon or extra package needed. (Thanks to the `I3_FLOATING_WINDOW` tip.)
