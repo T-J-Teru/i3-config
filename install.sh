@@ -113,6 +113,10 @@ PACKAGES=(
 
   # Python module used by i3-move-workspace.
   python3-i3ipc
+
+  # X11 clipboard access, used by scripts that push output to the clipboard
+  # (e.g. git-copy-sha in the git-config repo).
+  xclip
 )
 
 install_packages() {
