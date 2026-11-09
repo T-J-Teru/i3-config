@@ -86,6 +86,11 @@ PACKAGES=(
   # Display backlight control, bound to the brightness keys in the i3 config.
   brightnessctl
 
+  # GUI mixer for PipeWire/PulseAudio: pick the default output device and move
+  # playing streams between sinks (e.g. dock -> Jabra headset). i3 has no audio
+  # applet of its own, so this is the device-switching UI.
+  pavucontrol
+
   # Sets the desktop wallpaper on the X root window (i3-wallpaper). See
   # "Desktop wallpaper (feh)" in i3-setup.md.
   feh
