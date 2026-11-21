@@ -41,7 +41,16 @@ i3-setup.md         # design document and changelog
 - **Screen lock**: xscreensaver. `i3-exit lock` uses `-lock` (on-demand); `i3-exit suspend/hibernate` uses `-suspend` (blanks+locks immediately, ignoring lock-timeout). Pointer is warped to the laptop panel first so the unlock dialog appears there.
 - **Polkit**: `mate-polkit` (Fedora dropped `polkit-gnome`). Started from the i3 config. Required for virt-manager and other GUI privilege escalation.
 - **Calculator scratchpad**: qalc in urxvt, kept in i3's scratchpad.
-- **Monitor layout**: autorandr for automatic profile switching; arandr for manual setup.
+- **Monitor layout**: autorandr applies the saved profile matching the
+  connected outputs (EDID fingerprint) -- the package's
+  `40-monitor-hotplug.rules` udev rule starts `autorandr.service` on every
+  DRM change (dock/undock), and install.sh enables the service so it also
+  runs after suspend/resume. Profiles are machine-local
+  (`~/.config/autorandr/<name>/`), deliberately NOT version-controlled:
+  unlike the keyboard layout, monitor EDIDs differ per machine. The
+  external monitor hangs off the dock's DisplayPort MST chain and
+  enumerates as `DP-4-4-4` (hardware-specific; `i3-fix-workspace-placement`
+  targets it -- see that script's header note). arandr for manual setup.
 
 ## When editing
 

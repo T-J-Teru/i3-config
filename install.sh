@@ -275,7 +275,24 @@ disable_pcspkr_beep() {
 }
 
 #-----------------------------------------------------------------------------#
-# 7. Desktop-interface gsettings (dark theme + fonts)
+# 7. autorandr monitor hotplug service
+#-----------------------------------------------------------------------------#
+
+# autorandr applies the saved monitor layout matching the connected outputs
+# (EDID fingerprints). The 40-monitor-hotplug.rules udev rule shipped with the
+# autorandr package starts autorandr.service on every DRM change event
+# (dock/undock), but the service is disabled by default -- so it would never
+# run after a suspend/resume (its WantedBy is sleep.target). Enabling it wires
+# the resume trigger too. The saved profiles themselves are machine-local
+# (~/.config/autorandr/<name>/), deliberately NOT version-controlled: unlike
+# the keyboard layout, monitor EDIDs differ per machine.
+enable_autorandr_service() {
+  echo ">> Enabling autorandr.service (sudo)..."
+  sudo systemctl enable autorandr.service
+}
+
+#-----------------------------------------------------------------------------#
+# 8. Desktop-interface gsettings (dark theme + fonts)
 #-----------------------------------------------------------------------------#
 
 # GTK4/libadwaita apps follow org.gnome.desktop.interface gsettings, not the GTK3
@@ -293,7 +310,7 @@ configure_desktop_gsettings() {
 }
 
 #-----------------------------------------------------------------------------#
-# 8. Default applications
+# 9. Default applications
 #-----------------------------------------------------------------------------#
 
 # Make xdg-open use the GNOME document viewer (Papers, the evince successor -- the
@@ -316,6 +333,7 @@ main() {
     configure_keyboard
     configure_timezone
     disable_pcspkr_beep
+    enable_autorandr_service
   fi
   create_symlinks
   configure_desktop_gsettings

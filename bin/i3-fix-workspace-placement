@@ -18,13 +18,16 @@ from i3ipc import Connection, Event
 # Look for two outputs, the laptop display and the external monitor at home.
 # Move every workspace numbered 20-29 to the external monitor.
 #
-# NOTE: output names are hardware/machine-specific. On this laptop the external
-# monitor enumerates as "DP-2-3" (check with `i3-msg -t get_outputs`). Update
-# these two names when setting up a different machine.
+# NOTE: output names are hardware/machine-specific. The external monitor
+# hangs off the dock's DisplayPort MST chain, so its name depends on the
+# dock port and the dock's position in the topology: through this dock it
+# enumerates as "DP-4-4-4" (dock on DP-4; on the previous machine's dock
+# it was "DP-2-3"). Check with `i3-msg -t get_outputs` and update these
+# two names when the hardware changes.
 
 # The laptop's built-in panel and the external monitor to move workspaces to.
 laptop_display = "eDP-1"
-target_display = "DP-2-3"
+target_display = "DP-4-4-4"
 
 i3 = Connection()
 
